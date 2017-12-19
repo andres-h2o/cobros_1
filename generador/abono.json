@@ -1,0 +1,36 @@
+{
+  "fields": [
+    {
+      "name": "fecha",
+      "type": "date"
+    },
+    {
+      "name": "monto",
+      "type": "integer"
+    },
+    {
+      "name": "credito_id",
+      "type": "integer#unsigned"
+    },
+    {
+      "name": "informe_id",
+      "type": "integer#unsigned"
+    }
+  ],
+  "foreign_keys": [
+    {
+      "column": "credito_id",
+      "references": "id",
+      "on": "creditos",
+      "onDelete": "cascade",
+      "onUpdate": "cascade"
+    },
+    {
+      "column": "informe_id",
+      "references": "id",
+      "on": "informes",
+      "onDelete": "cascade",
+      "onUpdate": "cascade"
+    }
+  ]
+}

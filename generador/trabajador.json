@@ -1,0 +1,46 @@
+{
+  "fields": [
+    {
+      "name": "nombre",
+      "type": "string"
+    },
+    {
+      "name": "celular",
+      "type": "integer"
+    },
+    {
+      "name": "latitud",
+      "type": "string"
+    },
+    {
+      "name": "longitud",
+      "type": "string"
+    },
+    {
+      "name": "password",
+      "type": "string"
+    },
+    {
+      "name": "habilitado",
+      "type": "integer"
+    }
+  ],
+  "validations": [
+    {
+      "field": "nombre",
+      "rules": "required"
+    },
+    {
+      "field": "celular",
+      "rules": "required"
+    },
+    {
+      "field": "latitud",
+      "rules": "required"
+    },
+    {
+      "field": "longitud",
+      "rules": "required"
+    }
+  ]
+}

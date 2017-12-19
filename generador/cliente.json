@@ -1,0 +1,38 @@
+{
+  "fields": [
+    {
+      "name": "nombre",
+      "type": "string"
+    },
+    {
+      "name": "celular",
+      "type": "integer"
+    },
+    {
+      "name": "latitud",
+      "type": "string"
+    },
+    {
+      "name": "longitud",
+      "type": "string"
+    },
+    {
+      "name": "conPrestamo",
+      "type": "integer"
+    }
+  ],
+  "validations": [
+    {
+      "field": "nombre",
+      "rules": "required"
+    },
+    {
+      "field": "latitud",
+      "rules": "required"
+    },
+    {
+      "field": "longitud",
+      "rules": "required"
+    }
+  ]
+}

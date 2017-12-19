@@ -1,0 +1,33 @@
+{
+  "fields": [
+    {
+      "name": "fecha",
+      "type": "date"
+    },
+    {
+      "name": "estado",
+      "type": "integer"
+    },{
+      "name": "trabajador_id",
+      "type": "integer#unsigned"
+    },{
+      "name": "informe_id",
+      "type": "integer#unsigned"
+    }
+  ],
+  "foreign_keys": [
+    {
+      "column": "trabajador_id",
+      "references": "id",
+      "on": "trabajadors",
+      "onDelete": "cascade",
+      "onUpdate": "cascade"
+    },{
+      "column": "informe_id",
+      "references": "id",
+      "on": "informes",
+      "onDelete": "cascade",
+      "onUpdate": "cascade"
+    }
+  ]
+}

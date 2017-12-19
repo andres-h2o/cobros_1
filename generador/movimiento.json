@@ -1,0 +1,29 @@
+{
+  "fields": [
+    {
+      "name": "fecha",
+      "type": "date"
+    },
+    {
+      "name": "monto",
+      "type": "integer"
+    },
+    {
+      "name": "tipo",
+      "type": "string"
+    },
+    {
+      "name": "balance_id",
+      "type": "integer#unsigned"
+    }
+  ],
+  "foreign_keys": [
+    {
+      "column": "balance_id",
+      "references": "id",
+      "on": "balances",
+      "onDelete": "cascade",
+      "onUpdate": "cascade"
+    }
+  ]
+}

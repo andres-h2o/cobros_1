@@ -1,0 +1,67 @@
+{
+  "fields": [
+    {
+      "name": "monto",
+      "type": "integer"
+    },
+    {
+      "name": "interes",
+      "type": "integer"
+    },
+    {
+      "name": "fecha",
+      "type": "date"
+    },
+    {
+      "name": "dias",
+      "type": "integer"
+    },
+    {
+      "name": "cuota",
+      "type": "integer"
+    },
+    {
+      "name": "acuenta",
+      "type": "integer"
+    },
+    {
+      "name": "estado",
+      "type": "boolean"
+    },
+    {
+      "name": "cliente_id",
+      "type": "integer#unsigned"
+    },
+    {
+      "name": "trabajador_id",
+      "type": "integer#unsigned"
+    },
+    {
+      "name": "informe_id",
+      "type": "integer#unsigned"
+    }
+  ],
+  "foreign_keys": [
+    {
+      "column": "cliente_id",
+      "references": "id",
+      "on": "clientes",
+      "onDelete": "cascade",
+      "onUpdate": "cascade"
+    },
+    {
+      "column": "trabajador_id",
+      "references": "id",
+      "on": "trabajadors",
+      "onDelete": "cascade",
+      "onUpdate": "cascade"
+    },
+    {
+      "column": "informe_id",
+      "references": "id",
+      "on": "informes",
+      "onDelete": "cascade",
+      "onUpdate": "cascade"
+    }
+  ]
+}

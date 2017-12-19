@@ -1,0 +1,56 @@
+{
+  "fields": [
+    {
+      "name": "monto",
+      "type": "double"
+    },
+    {
+      "name": "fecha_pago",
+      "type": "date"
+    },
+    {
+      "name": "estado",
+      "type": "integer"
+    },
+    {
+      "name": "credito_id",
+      "type": "integer#unsigned"
+    },
+    {
+      "name": "trabajador_id",
+      "type": "integer#unsigned"
+    },
+    {
+      "name": "informe_id",
+      "type": "integer#unsigned"
+    }
+  ],
+  "foreign_keys": [
+    {
+      "column": "credito_id",
+      "references": "id",
+      "on": "creditos",
+      "onDelete": "cascade",
+      "onUpdate": "cascade"
+    },{
+      "column": "trabajador_id",
+      "references": "id",
+      "on": "trabajadors",
+      "onDelete": "cascade",
+      "onUpdate": "cascade"
+    },
+    {
+      "column": "informe_id",
+      "references": "id",
+      "on": "informes",
+      "onDelete": "cascade",
+      "onUpdate": "cascade"
+    }
+  ],
+  "validations": [
+    {
+      "field": "monto",
+      "rules": "required"
+    }
+  ]
+}
