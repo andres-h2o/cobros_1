@@ -74,8 +74,8 @@ class TrabajadorController extends Controller
         Trabajador::create([
             'nombre' =>$nombre,
             'celular' => $celular,
-            'longitud'=>0,
-            'latitud' => 0,
+            'longitud'=>"",
+            'latitud' => "",
             'password' => $password,
             'habilitado'=>1
         ]);
@@ -91,9 +91,44 @@ class TrabajadorController extends Controller
             'trabajador_id'=>$trabajador_id,
             'informe_id'=>$informe_id
         ]);
-        return ;
+        return json_encode(array("confirmacion"=>1)) ;
+    }
+    public function login($codigo,$password)
+    {
+
+        $contra=Trabajador::where('id','=',$codigo)
+            ->select('password')->get()->first();
+        if($contra!=""){
+            $contra=$contra->password;
+            if($contra==$password){
+                return json_encode(array('confirmacion'=>1));
+            }else{
+                return json_encode(array('confirmacion'=>2));
+            }
+
+        }else{
+            return json_encode(array('confirmacion'=>0));
+        }
+        return json_encode(array('confirmacion'=>0));
+    }
+    public function codigo()
+    {
+        $codigo=Trabajador::select('id')->orderBy('id','desc')->get()->first();
+        //return $codigo;
+        if($codigo!=""){
+            $codigo=$codigo->id+1;
+
+            return json_encode(array('codigo'=>$codigo));
+        }else{
+            return json_encode(array('codigo'=>1));
+        }
     }
 
+    public function mostrar()
+    {
+        $trabajadores=Trabajador::all();
+        return json_encode(array("trabajadores"=>$trabajadores));
+    }
     /**
      * Display the specified resource.
      *

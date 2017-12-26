@@ -16,6 +16,7 @@ class CreateInformesTable extends Migration
             $table->increments('id');
             $table->timestamps();
             $table->dateTime('fecha')->nullable();
+            $table->dateTime('fecha_cierre')->nullable();
             });
     }
 

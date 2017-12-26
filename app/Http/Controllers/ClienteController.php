@@ -6,6 +6,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 use App\Cliente;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ClienteController extends Controller
@@ -39,6 +40,68 @@ class ClienteController extends Controller
      *
      * @return \Illuminate\View\View
      */
+    public function guardarCliente($nombre,$celular,$latitud,$longitud)
+    {
+        Cliente::create([
+            'nombre' =>$nombre,
+            'celular' => $celular,
+            'longitud'=>$longitud,
+            'latitud' => $latitud,
+            'conPrestamo'=>0
+        ]);
+        return json_encode(array("confirmacion"=>1));
+    }
+
+    public function mostrar($trabajador){
+        $clientes=Cliente::join('creditos as c','c.cliente_id','=','clientes.id')
+            ->select('clientes.id as id',
+                'nombre',
+            'celular',
+            'latitud',
+            'longitud',
+            'conPrestamo'
+            )->where('c.trabajador_id','=',$trabajador)
+            ->where('c.estado','=',1)->get();
+        $clientesSin=Cliente::where('conPrestamo','=',0)
+            ->select('clientes.id as id',
+                'nombre',
+                'celular',
+                'latitud',
+                'longitud',
+                'conPrestamo'
+            )->get();
+        return json_encode(array("clientesCon"=>$clientes,"clientesSin"=>$clientesSin));
+    }
+    public function mostrarPendientes($trabajador){
+        //clientes que si pagaron ese dia
+        $clientes=Cliente::join('creditos as c','c.cliente_id','=','clientes.id')
+            ->where('c.estado','=',1)
+            ->join('cuotas as cu','credito_id','=','c.id')
+            ->where('c.trabajador_id','=',$trabajador)
+            ->where('cu.estado','=',1)
+            ->where('cu.fecha_pago','=',Carbon::now()->format('Y-m-d'))
+            ->select('clientes.id as id')->get();
+        //return $clientes;
+        $clientesAbono=Cliente::join('creditos as c','c.cliente_id','=','clientes.id')
+            ->join('abonos as a','credito_id','=','c.id')
+            ->where('c.trabajador_id','=',$trabajador)
+            ->where('a.fecha','=',Carbon::now()->format('Y-m-d'))
+            ->select('clientes.id as id')->get();
+        //clientesque faltan pagar
+        $clientesTrabajador=Cliente::join('creditos as c','c.cliente_id','=','clientes.id')
+            ->whereNotIn('clientes.id',$clientes)
+            ->whereNotIn('clientes.id',$clientesAbono)
+            ->select('clientes.id as id',
+                'nombre',
+                'celular',
+                'latitud',
+                'longitud',
+                'conPrestamo'
+            )->where('c.trabajador_id','=',$trabajador)
+            ->where('c.estado','=',1)->get();
+        //return $clientesTrabajador;
+        return json_encode(array("clientes"=>$clientesTrabajador));
+    }
     public function create()
     {
         return view('cliente.create');

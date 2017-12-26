@@ -25,7 +25,7 @@ class Informe extends Model
      *
      * @var array
      */
-    protected $fillable = ['fecha'];
+    protected $fillable = ['fecha','fecha_cierre'];
 
     
 }

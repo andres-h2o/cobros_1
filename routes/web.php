@@ -26,4 +26,14 @@ Route::resource('movimiento', 'MovimientoController');
 Route::resource('adm', 'AdmController');
 
 //rutas webservices
-Route::get('trabajador/{nombre}/{celular}','TrabajadorController@guardarTrabajador');
+Route::get('agregarTrabajador/{nombre}/{celular}/{password}','TrabajadorController@guardarTrabajador');
+Route::get('agregarCliente/{nombre}/{celular}/{latitud}/{longitud}','ClienteController@guardarCliente');
+Route::get('informe/cierre','InformeController@cerrarInforme');
+Route::get('iniciar/{nombre}/{password}','AdmController@login');
+Route::get('iniciarTrabajador/{codigo}/{password}','TrabajadorController@login');
+Route::get('nuevoTrabajador','TrabajadorController@codigo');
+Route::get('trabajadores/mostrar','TrabajadorController@mostrar');
+Route::get('clientes/mostrar/todos/{trabajador}','ClienteController@mostrar');
+Route::get('clientes/mostrar/pendientes/{trabajador}','ClienteController@mostrarPendientes');
+Route::get('clientes/mostrar/cuentas/{cliente}','CreditoController@mostrarCuentas');
+Route::get('cuentas/ver/{credito}','CreditoController@verCuenta');

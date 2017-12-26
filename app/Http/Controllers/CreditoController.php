@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Cuotum;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 use App\Credito;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class CreditoController extends Controller
@@ -125,5 +127,28 @@ class CreditoController extends Controller
         Credito::destroy($id);
 
         return redirect('credito')->with('flash_message', 'Credito deleted!');
+    }
+
+    public function mostrarCuentas($clientes)
+    {
+            $cuentas = Credito::where('cliente_id','=',$clientes)
+            ->join('trabajadors as t','t.id','=','trabajador_id')
+            ->select('creditos.id as id',
+                'monto',
+                'fecha',
+                't.nombre as trabajador',
+                'estado'
+            )->orderBy('fecha','desc')->get();
+        return json_encode(array("cuentas"=>$cuentas));
+    }
+
+    public function verCuenta($credito)
+    {
+        $cuenta= Credito::find($credito);
+        $retraso= Cuotum::where('credito_id','=',$credito)
+            ->select('fecha_pago as fecha')->orderBy('fecha_pago','desc')->get()->first()->fecha;
+        //$diasRetrasados=Carbon::now()->diff($retraso);
+        return Carbon::createFromFormat('Y-m-d',$retraso)->diffInDays();
+        return json_encode(array("cuenta"=>$cuenta));
     }
 }

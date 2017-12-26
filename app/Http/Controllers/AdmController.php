@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 
 use App\Adm;
 use Illuminate\Http\Request;
+use PhpParser\Node\Expr\Array_;
 
 class AdmController extends Controller
 {
@@ -15,6 +16,20 @@ class AdmController extends Controller
      *
      * @return \Illuminate\View\View
      */
+
+    public function login($nombre,$password)
+    {
+
+        $contra=Adm::where('nombre','=',$nombre)
+            ->select('password')->first()->password;
+       // return $contra;
+        if($contra==$password){
+            $arr=array('respuesta'=>1);
+            return json_encode($arr);
+        }
+        $arr=array('respuesta'=>0);
+        return json_encode($arr);
+    }
     public function index(Request $request)
     {
         $keyword = $request->get('search');

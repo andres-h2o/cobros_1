@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Abono;
+use App\Credito;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 use App\Informe;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class InformeController extends Controller
@@ -52,6 +55,28 @@ class InformeController extends Controller
         
         $requestData = $request->all();
         
+        Informe::create($requestData);
+
+        return redirect('informe')->with('flash_message', 'Informe added!');
+    }
+
+    public function cerrarInforme()
+    {
+        $informe_id=Informe::select('id')
+            ->orderBy('id','desc')
+            ->get()->first()->id;
+        $creditos= Credito::select('id','acuenta')
+            ->where('estado','=',1)->get();
+        foreach($creditos as $item){
+            Abono::create([
+                'monto'=>$item->acuenta
+            ]);
+        }
+        $informe = Informe::find($informe_id);
+        $informe->update([
+            'fecha_cierre'=>Carbon::now()
+        ]);
+
         Informe::create($requestData);
 
         return redirect('informe')->with('flash_message', 'Informe added!');
