@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Balance;
+use App\Cliente;
 use App\Cuotum;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 use App\Credito;
+use App\Informe;
+use App\Movimiento;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CreditoController extends Controller
 {
@@ -60,9 +65,9 @@ class CreditoController extends Controller
      */
     public function store(Request $request)
     {
-        
+
         $requestData = $request->all();
-        
+
         Credito::create($requestData);
 
         return redirect('credito')->with('flash_message', 'Credito added!');
@@ -71,7 +76,7 @@ class CreditoController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  int $id
      *
      * @return \Illuminate\View\View
      */
@@ -85,7 +90,7 @@ class CreditoController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param  int $id
      *
      * @return \Illuminate\View\View
      */
@@ -100,15 +105,15 @@ class CreditoController extends Controller
      * Update the specified resource in storage.
      *
      * @param \Illuminate\Http\Request $request
-     * @param  int  $id
+     * @param  int $id
      *
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function update(Request $request, $id)
     {
-        
+
         $requestData = $request->all();
-        
+
         $credito = Credito::findOrFail($id);
         $credito->update($requestData);
 
@@ -118,7 +123,7 @@ class CreditoController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  int $id
      *
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
@@ -131,24 +136,102 @@ class CreditoController extends Controller
 
     public function mostrarCuentas($clientes)
     {
-            $cuentas = Credito::where('cliente_id','=',$clientes)
-            ->join('trabajadors as t','t.id','=','trabajador_id')
+        $cuentas = Credito::where('cliente_id', '=', $clientes)
+            ->join('trabajadors as t', 't.id', '=', 'trabajador_id')
             ->select('creditos.id as id',
                 'monto',
                 'fecha',
                 't.nombre as trabajador',
                 'estado'
-            )->orderBy('fecha','desc')->get();
-        return json_encode(array("cuentas"=>$cuentas));
+            )->orderBy('fecha', 'desc')->orderBy('estado', 'desc')->get();
+        return json_encode(array("cuentas" => $cuentas));
     }
 
     public function verCuenta($credito)
     {
-        $cuenta= Credito::find($credito);
-        $retraso= Cuotum::where('credito_id','=',$credito)
-            ->select('fecha_pago as fecha')->orderBy('fecha_pago','desc')->get()->first()->fecha;
-        //$diasRetrasados=Carbon::now()->diff($retraso);
-        return Carbon::createFromFormat('Y-m-d',$retraso)->diffInDays();
-        return json_encode(array("cuenta"=>$cuenta));
+        $cuenta = Credito::where('id','=',$credito)->get();
+        $retraso = Cuotum::where('credito_id', '=', $credito)
+            ->select('fecha_pago as fecha')->orderBy('fecha_pago', 'desc')->get()->first();
+        if(!empty($retraso)){
+            $retraso=$retraso->fecha;
+            $dia=Carbon::createFromFormat('Y-m-d',$retraso)->isFuture();
+            if(!$dia){
+                $diasRetrasados = Carbon::createFromFormat('Y-m-d', $retraso)->diffInDays();
+            }else{
+                $diasRetrasados=0;
+            }
+
+
+
+        }else{
+
+            $diasRetrasados=0;
+        }
+
+        $diasFaltantes = $cuenta->first()->dias - count(Cuotum::where('credito_id', '=', $credito)->get());
+        $cuotas = Cuotum::where('credito_id', '=', $credito)->get();
+        return json_encode(array("cuenta" => $cuenta, "retrazos" => $diasRetrasados, "faltantes" => $diasFaltantes,"cuotas"=>$cuotas));//
+    }
+
+    public function nuevoCredito($monto, $interes, $fecha, $dias, $cuota, $cliente_id, $trabajador_id)
+    {
+            $balance_id=Balance::where('trabajador_id', '=', $trabajador_id)
+                ->where('estado', '=', 1)
+                ->select('id',  'fecha')->orderBy('id', 'desc')->get()->first();
+        if (!empty($balance_id)){
+            $ingresos = Movimiento::where('balance_id','=',$balance_id->id)
+                ->where('tipo','=',1)
+                ->select(DB::raw('sum(monto) as ingresos'))
+                ->get()->first();
+            if(!empty($ingresos)){
+                $egresos= Movimiento::where('balance_id','=',$balance_id->id)
+                    ->where('tipo','=',2)
+                    ->select(DB::raw('sum(monto) as egresos'))
+                    ->get()->first();
+                if(!empty($egresos)){
+                    $saldo=$ingresos->ingresos-$egresos->egresos;
+                }else{
+                    $saldo=$ingresos->ingresos;
+                }
+            }else{
+                return json_encode(array("confirmacion" => 0));
+            }
+
+        }else{
+            return json_encode(array("confirmacion" => 0));
+        }
+        if ($saldo >= $monto) {
+            $informe_id = Informe::select('id')
+                ->orderBy('id', 'desc')
+                ->get()->first()->id;
+            Credito::create(
+                [
+                    'monto' => $monto,
+                    'interes' => $interes,
+                    'fecha' => $fecha,
+                    'dias' => $dias,
+                    'cuota' => $cuota,
+                    'acuenta' => 0,
+                    'cliente_id' => $cliente_id,
+                    'trabajador_id' => $trabajador_id,
+                    'estado' => 1,
+                    'informe_id' => $informe_id
+                ]
+            );
+            Cliente::find($cliente_id)->update(['conPrestamo'=>1]);
+            $cliente=Cliente::find($cliente_id)->nombre;
+            Movimiento::create([
+                'fecha'=>Carbon::now()->format('Y-m-d'),
+                'monto'=>$monto,
+                'detalle'=>'PRESTAMO',
+                'descripcion'=>'Prestamo a '.$cliente,
+                'tipo'=>2,
+                'balance_id'=>$balance_id->id
+            ]);
+            return json_encode(array("confirmacion" => 1));
+        } else {
+            return json_encode(array("confirmacion" => 0));
+        }
+
     }
 }

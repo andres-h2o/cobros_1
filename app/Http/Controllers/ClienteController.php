@@ -40,68 +40,7 @@ class ClienteController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function guardarCliente($nombre,$celular,$latitud,$longitud)
-    {
-        Cliente::create([
-            'nombre' =>$nombre,
-            'celular' => $celular,
-            'longitud'=>$longitud,
-            'latitud' => $latitud,
-            'conPrestamo'=>0
-        ]);
-        return json_encode(array("confirmacion"=>1));
-    }
 
-    public function mostrar($trabajador){
-        $clientes=Cliente::join('creditos as c','c.cliente_id','=','clientes.id')
-            ->select('clientes.id as id',
-                'nombre',
-            'celular',
-            'latitud',
-            'longitud',
-            'conPrestamo'
-            )->where('c.trabajador_id','=',$trabajador)
-            ->where('c.estado','=',1)->get();
-        $clientesSin=Cliente::where('conPrestamo','=',0)
-            ->select('clientes.id as id',
-                'nombre',
-                'celular',
-                'latitud',
-                'longitud',
-                'conPrestamo'
-            )->get();
-        return json_encode(array("clientesCon"=>$clientes,"clientesSin"=>$clientesSin));
-    }
-    public function mostrarPendientes($trabajador){
-        //clientes que si pagaron ese dia
-        $clientes=Cliente::join('creditos as c','c.cliente_id','=','clientes.id')
-            ->where('c.estado','=',1)
-            ->join('cuotas as cu','credito_id','=','c.id')
-            ->where('c.trabajador_id','=',$trabajador)
-            ->where('cu.estado','=',1)
-            ->where('cu.fecha_pago','=',Carbon::now()->format('Y-m-d'))
-            ->select('clientes.id as id')->get();
-        //return $clientes;
-        $clientesAbono=Cliente::join('creditos as c','c.cliente_id','=','clientes.id')
-            ->join('abonos as a','credito_id','=','c.id')
-            ->where('c.trabajador_id','=',$trabajador)
-            ->where('a.fecha','=',Carbon::now()->format('Y-m-d'))
-            ->select('clientes.id as id')->get();
-        //clientesque faltan pagar
-        $clientesTrabajador=Cliente::join('creditos as c','c.cliente_id','=','clientes.id')
-            ->whereNotIn('clientes.id',$clientes)
-            ->whereNotIn('clientes.id',$clientesAbono)
-            ->select('clientes.id as id',
-                'nombre',
-                'celular',
-                'latitud',
-                'longitud',
-                'conPrestamo'
-            )->where('c.trabajador_id','=',$trabajador)
-            ->where('c.estado','=',1)->get();
-        //return $clientesTrabajador;
-        return json_encode(array("clientes"=>$clientesTrabajador));
-    }
     public function create()
     {
         return view('cliente.create');
@@ -117,12 +56,12 @@ class ClienteController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
-			'nombre' => 'required',
-			'latitud' => 'required',
-			'longitud' => 'required'
-		]);
+            'nombre' => 'required',
+            'latitud' => 'required',
+            'longitud' => 'required'
+        ]);
         $requestData = $request->all();
-        
+
         Cliente::create($requestData);
 
         return redirect('cliente')->with('flash_message', 'Cliente added!');
@@ -131,7 +70,7 @@ class ClienteController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  int $id
      *
      * @return \Illuminate\View\View
      */
@@ -145,7 +84,7 @@ class ClienteController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param  int $id
      *
      * @return \Illuminate\View\View
      */
@@ -160,19 +99,19 @@ class ClienteController extends Controller
      * Update the specified resource in storage.
      *
      * @param \Illuminate\Http\Request $request
-     * @param  int  $id
+     * @param  int $id
      *
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-			'nombre' => 'required',
-			'latitud' => 'required',
-			'longitud' => 'required'
-		]);
+            'nombre' => 'required',
+            'latitud' => 'required',
+            'longitud' => 'required'
+        ]);
         $requestData = $request->all();
-        
+
         $cliente = Cliente::findOrFail($id);
         $cliente->update($requestData);
 
@@ -182,7 +121,7 @@ class ClienteController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  int $id
      *
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
@@ -191,5 +130,81 @@ class ClienteController extends Controller
         Cliente::destroy($id);
 
         return redirect('cliente')->with('flash_message', 'Cliente deleted!');
+    }
+
+    public function guardarCliente($nombre, $celular, $latitud, $longitud)
+    {
+        Cliente::create([
+            'nombre' => $nombre,
+            'celular' => $celular,
+            'longitud' => $longitud,
+            'latitud' => $latitud,
+            'conPrestamo' => 0
+        ]);
+        return json_encode(array("confirmacion" => 1));
+    }
+
+    public function mostrar($trabajador)
+    {
+        $clientes = Cliente::join('creditos as c', 'c.cliente_id', '=', 'clientes.id')
+            ->select('clientes.id as id',
+                'nombre',
+                'celular',
+                'latitud',
+                'longitud',
+                'conPrestamo'
+            )->where('c.trabajador_id', '=', $trabajador)
+            ->where('c.estado', '=', 1)->orderBy('clientes.id', 'asc')->get();
+        $clientesSin = Cliente::where('conPrestamo', '=', 0)
+            ->select('clientes.id as id',
+                'nombre',
+                'celular',
+                'latitud',
+                'longitud',
+                'conPrestamo'
+            )->orderBy('clientes.id', 'asc')->get();
+        return json_encode(array("clientesCon" => $clientes, "clientesSin" => $clientesSin));
+    }
+
+    public function mostrarPendientes($trabajador)
+    {
+        //clientes que si pagaron ese dia
+        $clientes = Cliente::join('creditos as c', 'c.cliente_id', '=', 'clientes.id')
+            ->where('c.estado', '=', 1)
+            ->join('cuotas as cu', 'credito_id', '=', 'c.id')
+            ->where('c.trabajador_id', '=', $trabajador)
+            ->where('cu.estado', '=', 1)
+            ->where('cu.fecha_pago', '=', Carbon::now()->format('Y-m-d'))
+            ->select('clientes.id as id')->get();
+        //return $clientes;
+        $clientesAbono = Cliente::join('creditos as c', 'c.cliente_id', '=', 'clientes.id')
+            ->join('abonos as a', 'credito_id', '=', 'c.id')
+            ->where('c.trabajador_id', '=', $trabajador)
+            ->where('a.fecha', '=', Carbon::now()->format('Y-m-d'))
+            ->select('clientes.id as id')->get();
+        //clientesque faltan pagar
+        $clientesTrabajador = Cliente::join('creditos as c', 'c.cliente_id', '=', 'clientes.id')
+            ->whereNotIn('clientes.id', $clientes)
+            ->whereNotIn('clientes.id', $clientesAbono)
+            ->select('clientes.id as id',
+                'nombre',
+                'celular',
+                'latitud',
+                'longitud',
+                'conPrestamo'
+            )->where('c.trabajador_id', '=', $trabajador)
+            ->where('c.estado', '=', 1)->orderBy('clientes.id', 'asc')->get();
+        //return $clientesTrabajador;
+        return json_encode(array("clientes" => $clientesTrabajador));
+    }
+
+    public function actualizar($cliente_id, $nombre, $celular)
+    {
+        $cliente = Cliente::find($cliente_id);
+        $cliente->update([
+            'nombre'=>$nombre,
+            'celular'=> $celular
+        ]);
+        return json_encode(array("confirmacion"=>1));
     }
 }

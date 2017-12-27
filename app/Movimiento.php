@@ -25,7 +25,7 @@ class Movimiento extends Model
      *
      * @var array
      */
-    protected $fillable = ['fecha', 'monto', 'tipo', 'balance_id'];
+    protected $fillable = ['fecha', 'monto', 'detalle', 'descripcion', 'tipo', 'balance_id'];
 
     
 }

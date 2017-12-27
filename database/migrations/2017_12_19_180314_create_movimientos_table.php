@@ -17,6 +17,8 @@ class CreateMovimientosTable extends Migration
             $table->timestamps();
             $table->date('fecha')->nullable();
             $table->integer('monto')->nullable();
+            $table->string('detalle')->nullable();
+            $table->string('descripcion')->nullable();
             $table->string('tipo')->nullable();
             $table->integer('balance_id')->unsigned();
             $table->foreign('balance_id')->references('id')->on('balances')->onDelete('cascade')->onUpdate('cascade');

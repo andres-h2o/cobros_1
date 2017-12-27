@@ -2,10 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Balance;
+use App\Cliente;
+use App\Credito;
+use App\Cuotum;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 use App\Abono;
+use App\Informe;
+use App\Movimiento;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class AbonoController extends Controller
@@ -119,5 +126,77 @@ class AbonoController extends Controller
         Abono::destroy($id);
 
         return redirect('abono')->with('flash_message', 'Abono deleted!');
+    }
+
+    public function nuevoAbono($monto, $credito_id,$trabajador_id)
+    {
+
+        $informe_id=Informe::select('id')
+            ->orderBy('id','desc')
+            ->get()->first()->id;
+        Abono::create([
+           'monto'=>$monto,
+           'fecha'=>Carbon::now()->format('Y-m-d'),
+           'credito_id'=>$credito_id,
+            'informe_id'=>$informe_id
+        ]);
+        //adicionar movimiento al trabajador como un nuevo ingreso del abono que recibe del cliente
+        $balance_id=Balance::where('trabajador_id', '=', $trabajador_id)
+            ->where('estado', '=', 1)
+            ->select('id',  'fecha')->orderBy('id', 'desc')->get()->first();
+        $credito= Credito::where('id','=',$credito_id)->get()->first();
+        $cliente =Cliente::find($credito->cliente_id)->nombre;
+
+        Movimiento::create([
+            'fecha'=>Carbon::now()->format('Y-m-d'),
+            'monto'=>$monto,
+            'detalle'=>'COBRO',
+            'descripcion'=>'Cobro a '.$cliente,
+            'tipo'=>1,
+            'balance_id'=>$balance_id->id
+        ]);
+
+        $abono=$credito->acuenta+$monto;
+        $fecha=Carbon::yesterday()->format('Y-m-d');
+        while($abono>=$credito->cuota){
+            $fecha=Carbon::createFromFormat('Y-m-d',$fecha)->addDay()->format('Y-m-d');
+
+            Cuotum::create([
+                'monto'=>$credito->cuota,
+                'fecha_pago'=>$fecha,
+                'estado'=>1,
+                'credito_id'=>$credito_id,
+                'trabajador_id'=>$trabajador_id,
+                'informe_id'=>$informe_id
+            ]);
+            $abono=$abono-$credito->cuota;
+        }
+
+        $credito= Credito::find($credito_id);
+        $credito->update([
+            'acuenta'=>$abono
+        ]);
+        $cuenta = Credito::where('id','=',$credito_id)->get();
+        $diasFaltantes = $cuenta->first()->dias - count(Cuotum::where('credito_id', '=', $credito_id)->get());
+
+        if ($diasFaltantes<=0){
+            Credito::find($credito_id)->update([
+                'estado'=>0
+            ]);
+            Cliente::find($credito->cliente_id)->update([
+                "conPrestamo"=>0
+            ]);
+            return json_encode(array("confirmacion"=>2));
+        }else{
+            return json_encode(array("confirmacion"=>1));
+        }
+
+    }
+
+    public function verAbonos($credito_id)
+    {
+        $abonos=Abono::where('credito_id','=',$credito_id)
+            ->select('id','fecha','monto')->orderBy('id','desc')->get();
+        return json_encode(array("abonos"=>$abonos));
     }
 }

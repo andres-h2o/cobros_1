@@ -67,19 +67,7 @@ class InformeController extends Controller
             ->get()->first()->id;
         $creditos= Credito::select('id','acuenta')
             ->where('estado','=',1)->get();
-        foreach($creditos as $item){
-            Abono::create([
-                'monto'=>$item->acuenta
-            ]);
-        }
-        $informe = Informe::find($informe_id);
-        $informe->update([
-            'fecha_cierre'=>Carbon::now()
-        ]);
-
-        Informe::create($requestData);
-
-        return redirect('informe')->with('flash_message', 'Informe added!');
+       //falta hacer que guarde un el Acuenta del credito para tenerlo como hixtoria de ese informe
     }
 
     /**
