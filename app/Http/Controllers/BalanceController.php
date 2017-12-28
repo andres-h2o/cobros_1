@@ -127,13 +127,15 @@ class BalanceController extends Controller
     {
         $balance_id = Balance::where('trabajador_id', '=', $trabajador_id)
             ->where('estado', '=', 1)
-            ->select('id', 'fecha')->orderBy('id', 'desc')->get()->first();
-        if (!empty($balance_id)) {
+            ->select('id', 'fecha','fecha_cierre','estado')->orderBy('id', 'desc')->get()->first();
+        if ($balance_id!="") {
             $ingresos = Movimiento::where('balance_id', '=', $balance_id->id)
                 ->where('tipo', '=', 1)
                 ->select(DB::raw('sum(monto) as ingresos'))
                 ->get()->first();
+
             if ($ingresos->ingresos != null) {
+
                 $egresos = Movimiento::where('balance_id', '=', $balance_id->id)
                     ->where('tipo', '=', 2)
                     ->select(DB::raw('sum(monto) as egresos'))
@@ -143,9 +145,11 @@ class BalanceController extends Controller
                     $egresos =$egresos->egresos;
                     $saldo = $ingresos- $egresos;
                 } else {
+
                     $ingresos = $ingresos->ingresos;
                     $egresos = 0;
-                    $saldo = $ingresos->ingresos;
+                    $saldo = $ingresos;
+
                 }
             } else {
                 $egresos = 0;
@@ -194,13 +198,15 @@ class BalanceController extends Controller
         return json_encode(array(
             "codigo" => $balance_id->id . "",
             "fecha" => $balance_id->fecha . "",
-            "ingresos" => $ingresos,
-            "egresos" => $egresos,
+            "fecha_cierre" => $balance_id->fecha_cierre . "",
+            "estado" => $balance_id->estado . "",
+            "ingresos" => $ingresos."",
+            "egresos" => $egresos."",
             "saldo" => $saldo . "",
-            "cargado" => $cargado,
-            "prestado" => $prestado,
-            "gastado" => $gastado,
-            "cobrado" => $cobrado,
+            "cargado" => $cargado."",
+            "prestado" => $prestado."",
+            "gastado" => $gastado."",
+            "cobrado" => $cobrado."",
         ));
     }
 
@@ -224,7 +230,7 @@ class BalanceController extends Controller
             } else {
                 $ingresos = $ingresos->ingresos;
                 $egresos = 0;
-                $saldo = $ingresos->ingresos;
+                $saldo = $ingresos;
             }
         } else {
             $egresos = 0;
@@ -269,20 +275,23 @@ class BalanceController extends Controller
         return json_encode(array(
             "codigo" => $balance_id."",
             "fecha" => Balance::find($balance_id)->fecha . "",
-            "ingresos" => $ingresos,
-            "egresos" => $egresos,
+            "fecha_cierre" => Balance::find($balance_id)->fecha_cierre . "",
+            "estado" => Balance::find($balance_id)->estado . "",
+            "ingresos" => $ingresos."",
+            "egresos" => $egresos."",
             "saldo" => $saldo . "",
-            "cargado" => $cargado,
-            "prestado" => $prestado,
-            "gastado" => $gastado,
-            "cobrado" => $cobrado,
+            "cargado" => $cargado."",
+            "prestado" => $prestado."",
+            "gastado" => $gastado."",
+            "cobrado" => $cobrado."",
         ));
     }
 
     public
     function verHistorico($trabajador_id)
     {
-        $informes = Balance::where('trabajador_id', '=', $trabajador_id)->get();
+        $informes = Balance::where('trabajador_id', '=', $trabajador_id)
+            ->select('id','fecha','fecha_cierre','estado')->orderBy('id','desc')->get();
         return json_encode(array("informes" => $informes));
     }
 
@@ -291,8 +300,9 @@ class BalanceController extends Controller
     {
 
         $ingresos = Movimiento::where('balance_id', '=', $balance_id)
+            ->join('trabajadors as t','t.id','=','trabajador_id')
             ->where('tipo', '=', 1)
-            ->select('id','fecha','monto','detalle','descripcion')
+            ->select('id','fecha','monto','detalle','descripcion','nombre')
             ->orderBy('id','desc')->get();
         return json_encode(array("ingresos" => $ingresos));
     }
@@ -302,8 +312,9 @@ class BalanceController extends Controller
     {
 
         $ingresos = Movimiento::where('balance_id', '=', $balance_id)
+            ->join('trabajadors as t','t.id','=','trabajador_id')
             ->where('tipo', '=', 2)
-            ->select('id','fecha','monto','detalle','descripcion')
+            ->select('id','fecha','monto','detalle','descripcion','nombre')
             ->orderBy('id','desc')->get();
 
         return json_encode(array("egresos" => $ingresos));
@@ -314,8 +325,9 @@ class BalanceController extends Controller
     {
 
         $ingresos = Movimiento::where('balance_id', '=', $balance_id)
+            ->join('trabajadors as t','t.id','=','trabajador_id')
             ->where('detalle', '=', 'GASTO')
-            ->select('id','fecha','monto','detalle','descripcion')
+            ->select('id','fecha','monto','detalle','descripcion','nombre')
             ->orderBy('id','desc')->get();
 
         return json_encode(array("gastos" => $ingresos));

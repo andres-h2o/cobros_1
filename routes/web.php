@@ -33,8 +33,10 @@ Route::resource('acuenta', 'AcuentaController');
 Route::get('agregarTrabajador/{nombre}/{celular}/{password}','TrabajadorController@guardarTrabajador');
 //agregar nuevo cliente
 Route::get('agregarCliente/{nombre}/{celular}/{latitud}/{longitud}','ClienteController@guardarCliente');
+//abrir informe general
+Route::get('abrirInforme','InformeController@abrirInforme');
 //cerrar informe general
-Route::get('informe/cierre','InformeController@cerrarInforme');
+Route::get('cerrarInforme','InformeController@cerrarInforme');
 //login de SUPER Usuario
 Route::get('iniciar/{nombre}/{password}','AdmController@login');
 //login de trabajador
@@ -43,6 +45,16 @@ Route::get('iniciarTrabajador/{codigo}/{password}','TrabajadorController@login')
 Route::get('nuevoTrabajador','TrabajadorController@codigo');
 //muestra todos los trabajadores
 Route::get('trabajadores/mostrar','TrabajadorController@mostrar');
+//editar datos del trabajador
+Route::get('trabajador/actualizar/{trabajador_id}/{nombre}/{celular}','TrabajadorController@actualizar');
+//dar de baja
+Route::get('trabajador/baja/{trabajador_id}','TrabajadorController@baja');
+//actualizar Ubicacion
+Route::get('trabajador/ubicacion/{latitud}/{longitud}/{trabajador_id}','TrabajadorController@ubicacion');
+//actualizar Password
+Route::get('trabajador/password/{passwordOld}/{passwordNe}/{trabajador_id}','TrabajadorController@actualizarPassword');
+//get Estado
+Route::get('trabajador/habilitado/{trabajador_id}','TrabajadorController@isHabilitado');
 
 //muestra todos los clientes del trabajador incluyendo los clientes sin prestamo con nadie
 Route::get('clientes/mostrar/todos/{trabajador}','ClienteController@mostrar');
@@ -63,6 +75,9 @@ Route::get('abono/nuevoAbono/{monto}/{credito_id}/{trabajador_id}','AbonoControl
 //ver historico de abonos de un credito
 Route::get('abono/ver/{credito_id}','AbonoController@verAbonos');
 
+//registrar abono
+Route::get('movimiento/abono/{monto}/{trabajador_id}','MovimientoController@abonar');
+
 //registrar nuevo gasto
 Route::get('movimiento/gasto/{monto}/{descripcion}/{trabajador_id}','MovimientoController@nuevoGasto');
 //ver ltimo balance de un trabajador
@@ -76,8 +91,19 @@ Route::get('balance/verGastos/{balance_id}','BalanceController@mostrarGastos');
 //ver historico de balances>retorna todos los balances de un trabajador
 Route::get('balance/verHistorico/{trabajador_id}','BalanceController@verHistorico');
 
+//ver ultimo informe
+Route::get('informes/verUltimo','InformeController@verUltimo');
+//ver un informe por su codigo
+Route::get('informes/ver/{informe_id}','InformeController@verInforme');
+//ver detalles de Movimientos como> Ingresos, Egresos y Gastos
+Route::get('informes/verIngresos/{informe_id}','InformeController@mostrarIngresos');
+Route::get('informes/verEgresos/{informe_id}','InformeController@mostrarEgresos');
+Route::get('informes/verGastos/{informe_id}','InformeController@mostrarGastos');
+//ver historico de informes>retorna todos los informes
+Route::get('informes/verHistorico','InformeController@verHistorico');
+
 //notificar NO Pago
-Route::get('observacion/nueva/{detalle}/{credito_id}/{trabajador_id}','ObservacionController@nuevaObservacion');
+Route::get('observacion/nueva/{detalle}/{cliente_id}/{trabajador_id}','ObservacionController@nuevaObservacion');
 
 
 

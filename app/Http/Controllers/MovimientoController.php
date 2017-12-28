@@ -167,4 +167,24 @@ class MovimientoController extends Controller
         }
 
     }
+
+    public function abonar($monto,$trabajador_id)
+    {
+        $balance_id = Balance::where('trabajador_id', '=', $trabajador_id)
+            ->where('estado', '=', 1)
+            ->select('id', 'fecha')->orderBy('id', 'desc')->get()->first();
+        if($balance_id!=""){
+            Movimiento::create([
+                'fecha' => Carbon::now()->format('Y-m-d'),
+                'monto' => $monto,
+                'detalle' => 'CARGA',
+                'descripcion' =>'',
+                'tipo' => 1,
+                'balance_id' => $balance_id->id
+            ]);
+            return json_encode(array("confirmacion" => 1));
+        }
+
+        return json_encode(array("confirmacion" => 1));
+    }
 }

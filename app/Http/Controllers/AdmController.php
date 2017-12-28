@@ -133,4 +133,14 @@ class AdmController extends Controller
 
         return redirect('adm')->with('flash_message', 'Adm deleted!');
     }
+    public function actualizarPassword($passwordOld,$passwordNew, $nombre)
+    {
+
+        $trabajador=Trabajador::where('nombre','=',$nombre)->get()->first();
+        if($trabajador->password==$passwordOld){
+            Trabajador::find($$trabajador->trabajador_id)->update(['password'=>$passwordNew]);
+            return json_encode(array("confirmacion"=>1));
+        }
+        return json_encode(array("confirmacion"=>0));
+    }
 }

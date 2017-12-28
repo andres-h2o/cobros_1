@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Credito;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
@@ -122,8 +123,16 @@ class ObservacionController extends Controller
         return redirect('observacion')->with('flash_message', 'Observacion deleted!');
     }
 
-    public function nuevaObservacion($detalle, $credito_id,$trabajador_id)
+    public function nuevaObservacion($detalle, $cliente_id,$trabajador_id)
     {
+        $credito_id = Credito::where('cliente_id', '=', $cliente_id)
+            ->join('trabajadors as t', 't.id', '=', 'trabajador_id')
+            ->select('creditos.id as id',
+                'monto',
+                'fecha',
+                't.nombre as trabajador',
+                'estado'
+            )->orderBy('fecha', 'desc')->orderBy('estado', 'desc')->get()->first()->id;
         Observacion::create([
             'fecha'=>Carbon::now()->format('Y-m-d'),
             'detalle'=>$detalle,

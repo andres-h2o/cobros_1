@@ -63,71 +63,11 @@ class TrabajadorController extends Controller
 			'celular' => 'required'
 		]);
         $requestData = $request->all();
-        
+
         Trabajador::create($requestData);
 
         return redirect('trabajador')->with('flash_message', 'Trabajador added!');
 
-    }
-    public function guardarTrabajador($nombre,$celular,$password)
-    {
-        Trabajador::create([
-            'nombre' =>$nombre,
-            'celular' => $celular,
-            'longitud'=>"",
-            'latitud' => "",
-            'password' => $password,
-            'habilitado'=>1
-        ]);
-        $trabajador_id=Trabajador::select('id')
-            ->orderBy('id','desc')
-            ->get()->first()->id;
-        $informe_id=Informe::select('id')
-            ->orderBy('id','desc')
-            ->get()->first()->id;
-        Balance::create([
-            'fecha'=>Carbon::now(),
-            'estado'=>1,
-            'trabajador_id'=>$trabajador_id,
-            'informe_id'=>$informe_id
-        ]);
-        return json_encode(array("confirmacion"=>1)) ;
-    }
-    public function login($codigo,$password)
-    {
-
-        $contra=Trabajador::where('id','=',$codigo)
-            ->select('password')->get()->first();
-        if($contra!=""){
-            $contra=$contra->password;
-            if($contra==$password){
-                return json_encode(array('confirmacion'=>1));
-            }else{
-                return json_encode(array('confirmacion'=>2));
-            }
-
-        }else{
-            return json_encode(array('confirmacion'=>0));
-        }
-        return json_encode(array('confirmacion'=>0));
-    }
-    public function codigo()
-    {
-        $codigo=Trabajador::select('id')->orderBy('id','desc')->get()->first();
-        //return $codigo;
-        if($codigo!=""){
-            $codigo=$codigo->id+1;
-
-            return json_encode(array('codigo'=>$codigo));
-        }else{
-            return json_encode(array('codigo'=>1));
-        }
-    }
-
-    public function mostrar()
-    {
-        $trabajadores=Trabajador::all();
-        return json_encode(array("trabajadores"=>$trabajadores));
     }
     /**
      * Display the specified resource.
@@ -142,7 +82,6 @@ class TrabajadorController extends Controller
 
         return view('trabajador.show', compact('trabajador'));
     }
-
     /**
      * Show the form for editing the specified resource.
      *
@@ -172,7 +111,7 @@ class TrabajadorController extends Controller
 			'celular' => 'required'
 		]);
         $requestData = $request->all();
-        
+
         $trabajador = Trabajador::findOrFail($id);
         $trabajador->update($requestData);
 
@@ -191,5 +130,124 @@ class TrabajadorController extends Controller
         Trabajador::destroy($id);
 
         return redirect('trabajador')->with('flash_message', 'Trabajador deleted!');
+    }
+
+    public function actualizar($trabajador_id, $nombre, $celular)
+    {
+         Trabajador::find($trabajador_id)->update([
+            'nombre'=>$nombre,
+            'celular'=> $celular
+        ]);
+        return json_encode(array("confirmacion"=>1));
+    }
+    public function ubicacion($latitud, $longitud, $trabajador_id)
+    {
+         Trabajador::find($trabajador_id)->update([
+            'latitud'=>$latitud,
+            'longitud'=> $longitud
+        ]);
+        return json_encode(array("confirmacion"=>1));
+    }
+    public function baja($trabajador_id)
+    {
+        $informe_id=Informe::where('estado','=',1)
+            ->select('id')
+            ->orderBy('id','desc')
+            ->get()->first();
+        if ($informe_id!=""){
+            return json_encode(array('confirmacion'=>0));
+        }
+        if(Trabajador::find($trabajador_id)->habilitado==0){
+            Trabajador::find($trabajador_id)->update([
+                'habilitado'=>1
+            ]);
+        }else{
+            Trabajador::find($trabajador_id)->update([
+                'habilitado'=>0
+            ]);
+        }
+        return json_encode(array("confirmacion"=>1));
+    }
+
+    public function guardarTrabajador($nombre,$celular,$password)
+    {
+        Trabajador::create([
+            'nombre' =>$nombre,
+            'celular' => $celular,
+            'longitud'=>"17",
+            'latitud' => "17",
+            'password' => $password,
+            'habilitado'=>1
+        ]);
+        $trabajador_id=Trabajador::select('id')
+            ->orderBy('id','desc')
+            ->get()->first()->id;
+        $informe_id=Informe::select('id')
+            ->orderBy('id','desc')
+            ->get()->first()->id;
+        Balance::create([
+            'fecha'=>Carbon::now(),
+            'fecha_cierre'=>Carbon::now(),
+            'estado'=>1,
+            'trabajador_id'=>$trabajador_id,
+            'informe_id'=>$informe_id
+        ]);
+        return json_encode(array("confirmacion"=>1)) ;
+    }
+    public function login($codigo,$password)
+    {
+
+        $contra=Trabajador::where('id','=',$codigo)
+            ->select('password','habilitado')->get()->first();
+        if($contra!=""){
+            if($contra->habilitado==1){
+                if( $contra->password==$password){
+                    return json_encode(array('confirmacion'=>1));
+                }else{
+                    return json_encode(array('confirmacion'=>2));
+                }
+            }else{
+                return json_encode(array('confirmacion'=>2));
+            }
+
+
+        }else{
+            return json_encode(array('confirmacion'=>0));
+        }
+        return json_encode(array('confirmacion'=>0));
+    }
+    public function codigo()
+    {
+        $codigo=Trabajador::select('id')->orderBy('id','desc')->get()->first();
+        //return $codigo;
+        if($codigo!=""){
+            $codigo=$codigo->id+1;
+
+            return json_encode(array('codigo'=>$codigo));
+        }else{
+            return json_encode(array('codigo'=>1));
+        }
+    }
+
+    public function mostrar()
+    {
+        $trabajadores=Trabajador::all();
+        return json_encode(array("trabajadores"=>$trabajadores));
+    }
+
+    public function isHabilitado($trabajador_id)
+    {
+        return json_encode(array("confirmacion"=>Trabajador::find($trabajador_id)->habilitado));
+    }
+
+    public function actualizarPassword($passwordOld,$passwordNew, $trabajador_id)
+    {
+
+        $trabajador=Trabajador::where('id','=',$trabajador_id)->get()->first();
+        if($trabajador->password==$passwordOld){
+            Trabajador::find($trabajador_id)->update(['password'=>$passwordNew]);
+            return json_encode(array("confirmacion"=>1));
+        }
+        return json_encode(array("confirmacion"=>0));
     }
 }

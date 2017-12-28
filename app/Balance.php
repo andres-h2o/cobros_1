@@ -25,7 +25,7 @@ class Balance extends Model
      *
      * @var array
      */
-    protected $fillable = ['fecha', 'estado', 'trabajador_id', 'informe_id'];
+    protected $fillable = ['fecha','fecha_cierre', 'estado', 'trabajador_id', 'informe_id'];
 
     
 }
