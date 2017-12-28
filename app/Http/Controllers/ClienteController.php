@@ -177,15 +177,29 @@ class ClienteController extends Controller
             ->where('cu.fecha_pago', '=', Carbon::now()->format('Y-m-d'))
             ->select('clientes.id as id')->get();
         //return $clientes;
+        //clientes que abonaron ese dia
         $clientesAbono = Cliente::join('creditos as c', 'c.cliente_id', '=', 'clientes.id')
             ->join('abonos as a', 'credito_id', '=', 'c.id')
             ->where('c.trabajador_id', '=', $trabajador)
             ->where('a.fecha', '=', Carbon::now()->format('Y-m-d'))
             ->select('clientes.id as id')->get();
+        //clientes que se ubiese prestado ese mismo dia
+        $clientesHoy = Cliente::join('creditos as c', 'c.cliente_id', '=', 'clientes.id')
+            ->where('c.trabajador_id', '=', $trabajador)
+            ->where('c.fecha', '=', Carbon::now()->format('Y-m-d'))
+            ->select('clientes.id as id')->get();
+        //clientes que registramos q no Pagaron por alguna razon
+        $clientesNoPago = Cliente::join('creditos as c', 'c.cliente_id', '=', 'clientes.id')
+            ->join('observacions as o', 'credito_id', '=', 'c.id')
+            ->where('c.trabajador_id', '=', $trabajador)
+            ->where('o.fecha', '=', Carbon::now()->format('Y-m-d'))
+            ->select('clientes.id as id')->get();
         //clientesque faltan pagar
         $clientesTrabajador = Cliente::join('creditos as c', 'c.cliente_id', '=', 'clientes.id')
             ->whereNotIn('clientes.id', $clientes)
             ->whereNotIn('clientes.id', $clientesAbono)
+            ->whereNotIn('clientes.id', $clientesHoy)
+            ->whereNotIn('clientes.id', $clientesNoPago)
             ->select('clientes.id as id',
                 'nombre',
                 'celular',

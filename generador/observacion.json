@@ -1,0 +1,35 @@
+{
+  "fields": [
+    {
+      "name": "fecha",
+      "type": "date"
+    },
+    {
+      "name": "detalle",
+      "type": "string"
+    },
+    {
+      "name": "credito_id",
+      "type": "integer#unsigned"
+    },
+    {
+      "name": "trabajador_id",
+      "type": "integer#unsigned"
+    }
+  ],
+  "foreign_keys": [
+    {
+      "column": "credito_id",
+      "references": "id",
+      "on": "creditos",
+      "onDelete": "cascade",
+      "onUpdate": "cascade"
+    },{
+      "column": "trabajador_id",
+      "references": "id",
+      "on": "trabajadors",
+      "onDelete": "cascade",
+      "onUpdate": "cascade"
+    }
+  ]
+}
