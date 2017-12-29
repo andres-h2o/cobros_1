@@ -230,10 +230,10 @@ class ClienteController extends Controller
     {
         $clientes =Cliente::join('creditos as c','c.cliente_id','=','clientes.id' )
             ->join('trabajadors as t', 't.id','=','trabajador_id')
-            ->select('clientes.id',
-                'clientes.nombre',
-                'clientes.latitud',
-                'clientes.longitud',
+            ->select('clientes.id as id',
+                'clientes.nombre as nombre',
+                'clientes.latitud as latitud',
+                'clientes.longitud as longitud',
                 't.nombre as trabajador')
             ->orderBy('t.nombre','asc')->get();
         return $clientes;

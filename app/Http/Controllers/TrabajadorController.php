@@ -191,7 +191,15 @@ class TrabajadorController extends Controller
                 'fecha_cierre'=>Carbon::now(),
                 'estado'=>1,
                 'trabajador_id'=>$trabajador_id,
-                'informe_id'=>$informe_id->id
+                'informe_id'=>$informe_id->id,
+                'ingresos'=>0,
+                'egresos'=>0,
+                'saldo'=>0,
+                'cargado'=>0,
+                'prestado'=>0,
+                'cobrado'=>0,
+                'gastado'=>0,
+                'porCobrar'=>0
             ]);
         }
 
