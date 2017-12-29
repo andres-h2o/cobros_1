@@ -182,16 +182,19 @@ class TrabajadorController extends Controller
         $trabajador_id=Trabajador::select('id')
             ->orderBy('id','desc')
             ->get()->first()->id;
-        $informe_id=Informe::select('id')
+        $informe_id=Informe::where('estado','=',1)->select('id')
             ->orderBy('id','desc')
-            ->get()->first()->id;
-        Balance::create([
-            'fecha'=>Carbon::now(),
-            'fecha_cierre'=>Carbon::now(),
-            'estado'=>1,
-            'trabajador_id'=>$trabajador_id,
-            'informe_id'=>$informe_id
-        ]);
+            ->get()->first();
+        if($informe_id!=""){
+            Balance::create([
+                'fecha'=>Carbon::now(),
+                'fecha_cierre'=>Carbon::now(),
+                'estado'=>1,
+                'trabajador_id'=>$trabajador_id,
+                'informe_id'=>$informe_id->id
+            ]);
+        }
+
         return json_encode(array("confirmacion"=>1)) ;
     }
     public function login($codigo,$password)

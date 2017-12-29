@@ -128,8 +128,73 @@ class AbonoController extends Controller
         return redirect('abono')->with('flash_message', 'Abono deleted!');
     }
 
-    public function nuevoAbono($monto, $credito_id,$trabajador_id)
+    /**
+     * @param $monto
+     * @param $credito_id
+     * @param $trabajador_id
+     * @return string
+     */
+    public function nuevoAbono($monto, $credito_id, $trabajador_id)
     {
+        $cuenta = Credito::where('id', '=', $credito_id)->get();
+        if ($cuenta->first()->fecha == Carbon::now()->format('Y-m-d')) {
+            $diasRetrasados = 0;
+        } else {
+            $retraso = Cuotum::where('credito_id', '=', $credito_id)
+                ->select('fecha_pago as fecha')->orderBy('fecha_pago', 'desc')->get()->first();
+            if ($retraso != "") {
+                $retraso = $retraso->fecha;
+                $dia = Carbon::createFromFormat('Y-m-d', $retraso)->isFuture();
+                if (!$dia) {
+                    $diasRetrasados = Carbon::createFromFormat('Y-m-d', $retraso)->diffInDays();
+                    if ((Carbon::now()->isMonday() && $diasRetrasados >= 9) ||
+                        (Carbon::now()->isTuesday() && $diasRetrasados >= 10) ||
+                        (Carbon::now()->isWednesday() && $diasRetrasados >= 11) ||
+                        (Carbon::now()->isThursday() && $diasRetrasados >= 12) ||
+                        (Carbon::now()->isFriday() && $diasRetrasados >= 13) ||
+                        (Carbon::now()->isSaturday() && $diasRetrasados >= 14) ||
+                        (Carbon::now()->isSunday() && $diasRetrasados >= 15)) {
+                        $diasRetrasados = $diasRetrasados - 2;
+                    } elseif ((Carbon::now()->isMonday() && $diasRetrasados >= 1) ||
+                        (Carbon::now()->isTuesday() && $diasRetrasados >= 2) ||
+                        (Carbon::now()->isWednesday() && $diasRetrasados >= 3) ||
+                        (Carbon::now()->isThursday() && $diasRetrasados >= 4) ||
+                        (Carbon::now()->isFriday() && $diasRetrasados >= 5) ||
+                        (Carbon::now()->isSaturday() && $diasRetrasados >= 6) ||
+                        Carbon::now()->isSunday()) {
+                        $diasRetrasados = $diasRetrasados - 1;
+                    }
+                } else {
+                    $diasRetrasados = 0;
+                }
+            } else {
+                $retraso = $cuenta->first()->fecha;
+                $dia = Carbon::createFromFormat('Y-m-d', $retraso)->isFuture();
+                if (!$dia) {
+                    $diasRetrasados = Carbon::createFromFormat('Y-m-d', $retraso)->diffInDays();
+                    if ((Carbon::now()->isMonday() && $diasRetrasados >= 9) ||
+                        (Carbon::now()->isTuesday() && $diasRetrasados >= 10) ||
+                        (Carbon::now()->isWednesday() && $diasRetrasados >= 11) ||
+                        (Carbon::now()->isThursday() && $diasRetrasados >= 12) ||
+                        (Carbon::now()->isFriday() && $diasRetrasados >= 13) ||
+                        (Carbon::now()->isSaturday() && $diasRetrasados >= 14) ||
+                        (Carbon::now()->isSunday() && $diasRetrasados >= 15)) {
+                        $diasRetrasados = $diasRetrasados - 2;
+                    } elseif ((Carbon::now()->isMonday() && $diasRetrasados > 1) ||
+                        (Carbon::now()->isTuesday() && $diasRetrasados >2) ||
+                        (Carbon::now()->isWednesday() && $diasRetrasados > 3) ||
+                        (Carbon::now()->isThursday() && $diasRetrasados > 4) ||
+                        (Carbon::now()->isFriday() && $diasRetrasados > 5) ||
+                        (Carbon::now()->isSaturday() && $diasRetrasados > 6) ||
+                        Carbon::now()->isSunday()) {
+                        $diasRetrasados = $diasRetrasados - 1;
+                    }
+                } else {
+                    $diasRetrasados = 0;
+                }
+            }
+        }
+
 
         $informe_id=Informe::select('id')
             ->orderBy('id','desc')
@@ -157,10 +222,17 @@ class AbonoController extends Controller
         ]);
 
         $abono=$credito->acuenta+$monto;
-        $fecha=Carbon::yesterday()->format('Y-m-d');
+        if($diasRetrasados!=0){
+            $fecha=Carbon::createFromFormat('Y-m-d',$retraso)->format('Y-m-d');
+        }else{
+            $fecha=Carbon::yesterday()->format('Y-m-d');
+        }
         while($abono>=$credito->cuota){
-            $fecha=Carbon::createFromFormat('Y-m-d',$fecha)->addDay()->format('Y-m-d');
 
+            $fecha=Carbon::createFromFormat('Y-m-d',$fecha."")->addDay()->format('Y-m-d');
+            if (Carbon::createFromFormat('Y-m-d',$fecha."")->isSunday()){
+                $fecha=Carbon::createFromFormat('Y-m-d',$fecha."")->addDay()->format('Y-m-d');
+            }
             Cuotum::create([
                 'monto'=>$credito->cuota,
                 'fecha_pago'=>$fecha,

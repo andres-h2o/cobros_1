@@ -221,4 +221,22 @@ class ClienteController extends Controller
         ]);
         return json_encode(array("confirmacion"=>1));
     }
+
+    public function mostrarTodos()
+    {
+        return json_encode(array("clientes"=>Cliente::select('id','nombre','conPrestamo','celular')->orderBy('id','asc')->get()));
+    }
+    public function ubicarTodos()
+    {
+        $clientes =Cliente::join('creditos as c','c.cliente_id','=','clientes.id' )
+            ->join('trabajadors as t', 't.id','=','trabajador_id')
+            ->select('clientes.id',
+                'clientes.nombre',
+                'clientes.latitud',
+                'clientes.longitud',
+                't.nombre as trabajador')
+            ->orderBy('t.nombre','asc')->get();
+        return $clientes;
+        return json_encode(array("clientes"=>$clientes));
+    }
 }

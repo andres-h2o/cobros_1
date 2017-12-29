@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Credito;
+use App\Cuotum;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
@@ -195,6 +197,13 @@ class BalanceController extends Controller
         } else {
             $cargado = 0;
         }
+        $creditos= Credito::where('trabajador_id','=',Balance::find($balance_id->id)->trabajador_id )->get();
+        $porCobrar=0;
+        foreach ($creditos as $item){
+            $diasFaltantes = $item->dias - count(Cuotum::where('credito_id', '=', $item->id)->get());
+            $cuota=$item->cuota;
+            $porCobrar=$porCobrar+($cuota*$diasFaltantes)-$item->acuenta;
+        }
         return json_encode(array(
             "codigo" => $balance_id->id . "",
             "fecha" => $balance_id->fecha . "",
@@ -207,84 +216,110 @@ class BalanceController extends Controller
             "prestado" => $prestado."",
             "gastado" => $gastado."",
             "cobrado" => $cobrado."",
+            "porCobrar" => $porCobrar.""
         ));
     }
 
     public
     function verBalance($balance_id)
     {
-
-        $ingresos = Movimiento::where('balance_id', '=', $balance_id)
-            ->where('tipo', '=', 1)
-            ->select(DB::raw('sum(monto) as ingresos'))
-            ->get()->first();
-        if ($ingresos->ingresos != null) {
-            $egresos = Movimiento::where('balance_id', '=', $balance_id)
-                ->where('tipo', '=', 2)
-                ->select(DB::raw('sum(monto) as egresos'))
+        if (Balance::find($balance_id)->estado==1){
+            $ingresos = Movimiento::where('balance_id', '=', $balance_id)
+                ->where('tipo', '=', 1)
+                ->select(DB::raw('sum(monto) as ingresos'))
                 ->get()->first();
-            if ($egresos->egresos != null) {
-                $ingresos = $ingresos->ingresos;
-                $egresos =$egresos->egresos;
-                $saldo = $ingresos- $egresos;
+            if ($ingresos->ingresos != null) {
+                $egresos = Movimiento::where('balance_id', '=', $balance_id)
+                    ->where('tipo', '=', 2)
+                    ->select(DB::raw('sum(monto) as egresos'))
+                    ->get()->first();
+                if ($egresos->egresos != null) {
+                    $ingresos = $ingresos->ingresos;
+                    $egresos =$egresos->egresos;
+                    $saldo = $ingresos- $egresos;
+                } else {
+                    $ingresos = $ingresos->ingresos;
+                    $egresos = 0;
+                    $saldo = $ingresos;
+                }
             } else {
-                $ingresos = $ingresos->ingresos;
                 $egresos = 0;
-                $saldo = $ingresos;
+                $ingresos = 0;
+                $saldo = 0;
             }
-        } else {
-            $egresos = 0;
-            $ingresos = 0;
-            $saldo = 0;
+
+            $prestado = Movimiento::where('balance_id', '=', $balance_id)
+                ->where('detalle', '=', 'PRESTAMO')
+                ->select(DB::raw('sum(monto) as monto'))->get()->first();
+
+            if ($prestado->monto != null) {
+                $prestado = $prestado->monto;
+            } else {
+                $prestado = 0;
+            }
+            $gastado = Movimiento::where('balance_id', '=', $balance_id)
+                ->where('detalle', '=', 'GASTO')
+                ->select(DB::raw('sum(monto) as monto'))->get()->first();
+
+            if ($gastado->monto != null) {
+                $gastado = $gastado->monto;
+            } else {
+                $gastado = 0;
+            }
+            $cobrado = Movimiento::where('balance_id', '=', $balance_id)
+                ->where('detalle', '=', 'COBRO')
+                ->select(DB::raw('sum(monto) as monto'))->get()->first();
+            if ($cobrado->monto != null) {
+                $cobrado = $cobrado->monto;
+            } else {
+                $cobrado = 0;
+            }
+            $cargado = Movimiento::where('balance_id', '=', $balance_id)
+                ->where('detalle', '=', 'CARGA')
+                ->select(DB::raw('sum(monto) as monto'))->get()->first();
+            if ($cargado->monto != null) {
+                $cargado = $cargado->monto;
+            } else {
+                $cargado = 0;
+            }
+            $creditos= Credito::where('trabajador_id','=',Balance::find($balance_id)->trabajador_id )->get();
+            $porCobrar=0;
+            foreach ($creditos as $item){
+                $diasFaltantes = $item->dias - count(Cuotum::where('credito_id', '=', $item->id)->get());
+                $cuota=$item->cuota;
+                $porCobrar=$porCobrar+($cuota*$diasFaltantes)-$item->acuenta;
+            }
+            return json_encode(array(
+                "codigo" => $balance_id."",
+                "fecha" => Balance::find($balance_id)->fecha . "",
+                "fecha_cierre" => Balance::find($balance_id)->fecha_cierre . "",
+                "estado" => Balance::find($balance_id)->estado . "",
+                "ingresos" => $ingresos."",
+                "egresos" => $egresos."",
+                "saldo" => $saldo . "",
+                "cargado" => $cargado."",
+                "prestado" => $prestado."",
+                "gastado" => $gastado."",
+                "cobrado" => $cobrado."",
+                "porCobrar" => $porCobrar.""
+            ));
+        }else{
+            $datos=Balance::find($balance_id);
+            return json_encode(array(
+                "codigo" => $datos->id."",
+                "fecha" => $datos->fecha . "",
+                "fecha_cierre"=>$datos->fecha_cierre. "",
+                "estado" =>$datos->estado. "",
+                "saldo"=>$datos->saldo. "",
+                "ingresos"=>$datos->ingresos. "",
+                "egresos"=>$datos->egresos. "",
+                "cargado"=>$datos->cargado. "",
+                "prestado"=>$datos->prestado. "",
+                "cobrado"=>$datos->cobrado. "",
+                "gastado"=>$datos->gastado. "",
+                "porCobrar"=>$datos->porCobrar. ""));
         }
 
-        $prestado = Movimiento::where('balance_id', '=', $balance_id)
-            ->where('detalle', '=', 'PRESTAMO')
-            ->select(DB::raw('sum(monto) as monto'))->get()->first();
-
-        if ($prestado->monto != null) {
-            $prestado = $prestado->monto;
-        } else {
-            $prestado = 0;
-        }
-        $gastado = Movimiento::where('balance_id', '=', $balance_id)
-            ->where('detalle', '=', 'GASTO')
-            ->select(DB::raw('sum(monto) as monto'))->get()->first();
-
-        if ($gastado->monto != null) {
-            $gastado = $gastado->monto;
-        } else {
-            $gastado = 0;
-        }
-        $cobrado = Movimiento::where('balance_id', '=', $balance_id)
-            ->where('detalle', '=', 'COBRO')
-            ->select(DB::raw('sum(monto) as monto'))->get()->first();
-        if ($cobrado->monto != null) {
-            $cobrado = $cobrado->monto;
-        } else {
-            $cobrado = 0;
-        }
-        $cargado = Movimiento::where('balance_id', '=', $balance_id)
-        ->where('detalle', '=', 'CARGA')
-        ->select(DB::raw('sum(monto) as monto'))->get()->first();
-        if ($cargado->monto != null) {
-            $cargado = $cargado->monto;
-        } else {
-            $cargado = 0;
-        }
-        return json_encode(array(
-            "codigo" => $balance_id."",
-            "fecha" => Balance::find($balance_id)->fecha . "",
-            "fecha_cierre" => Balance::find($balance_id)->fecha_cierre . "",
-            "estado" => Balance::find($balance_id)->estado . "",
-            "ingresos" => $ingresos."",
-            "egresos" => $egresos."",
-            "saldo" => $saldo . "",
-            "cargado" => $cargado."",
-            "prestado" => $prestado."",
-            "gastado" => $gastado."",
-            "cobrado" => $cobrado."",
-        ));
     }
 
     public
@@ -300,10 +335,11 @@ class BalanceController extends Controller
     {
 
         $ingresos = Movimiento::where('balance_id', '=', $balance_id)
+            ->join('balances as b','b.id','=','balance_id')
             ->join('trabajadors as t','t.id','=','trabajador_id')
             ->where('tipo', '=', 1)
-            ->select('id','fecha','monto','detalle','descripcion','nombre')
-            ->orderBy('id','desc')->get();
+            ->select('movimientos.id as id','movimientos.fecha','monto','detalle','descripcion','nombre')
+            ->orderBy('movimientos.id','desc')->get();
         return json_encode(array("ingresos" => $ingresos));
     }
 
@@ -312,10 +348,11 @@ class BalanceController extends Controller
     {
 
         $ingresos = Movimiento::where('balance_id', '=', $balance_id)
+            ->join('balances as b','b.id','=','balance_id')
             ->join('trabajadors as t','t.id','=','trabajador_id')
             ->where('tipo', '=', 2)
-            ->select('id','fecha','monto','detalle','descripcion','nombre')
-            ->orderBy('id','desc')->get();
+            ->select('movimientos.id as id','movimientos.fecha','monto','detalle','descripcion','nombre')
+            ->orderBy('movimientos.id','desc')->get();
 
         return json_encode(array("egresos" => $ingresos));
     }
@@ -325,10 +362,11 @@ class BalanceController extends Controller
     {
 
         $ingresos = Movimiento::where('balance_id', '=', $balance_id)
+            ->join('balances as b','b.id','=','balance_id')
             ->join('trabajadors as t','t.id','=','trabajador_id')
             ->where('detalle', '=', 'GASTO')
-            ->select('id','fecha','monto','detalle','descripcion','nombre')
-            ->orderBy('id','desc')->get();
+            ->select('movimientos.id as id','movimientos.fecha','monto','detalle','descripcion','nombre')
+            ->orderBy('movimientos.id','desc')->get();
 
         return json_encode(array("gastos" => $ingresos));
     }

@@ -51,13 +51,19 @@ Route::get('trabajador/actualizar/{trabajador_id}/{nombre}/{celular}','Trabajado
 Route::get('trabajador/baja/{trabajador_id}','TrabajadorController@baja');
 //actualizar Ubicacion
 Route::get('trabajador/ubicacion/{latitud}/{longitud}/{trabajador_id}','TrabajadorController@ubicacion');
-//actualizar Password
+//actualizar Password trabajador
 Route::get('trabajador/password/{passwordOld}/{passwordNe}/{trabajador_id}','TrabajadorController@actualizarPassword');
+//actualizar Password Administrador
+Route::get('su/password/{passwordOld}/{passwordNe}/{trabajador_id}','AdmController@actualizarPassword');
 //get Estado
 Route::get('trabajador/habilitado/{trabajador_id}','TrabajadorController@isHabilitado');
 
 //muestra todos los clientes del trabajador incluyendo los clientes sin prestamo con nadie
 Route::get('clientes/mostrar/todos/{trabajador}','ClienteController@mostrar');
+//muestra todos los clientes
+Route::get('clientes/mostrarTodos','ClienteController@mostrarTodos');
+//muestra UBICACION DE todos los clientes POR SUS TRABAJADORES ACTUALES
+Route::get('clientes/ubicarTodos','ClienteController@ubicarTodos');
 //muestra los clientes que estan pendientes a pagar ese dia
 Route::get('clientes/mostrar/pendientes/{trabajador}','ClienteController@mostrarPendientes');
 //muestra  os creditos de un cliente

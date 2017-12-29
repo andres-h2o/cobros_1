@@ -25,7 +25,14 @@ class Informe extends Model
      *
      * @var array
      */
-    protected $fillable = ['fecha','fecha_cierre','estado'];
+    protected $fillable = ['fecha','fecha_cierre','estado','saldo',
+        'ingresos',
+        'egresos',
+        'cargado',
+        'prestado',
+        'cobrado',
+        'gastado',
+        'porCobrar'];
 
     
 }

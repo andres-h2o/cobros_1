@@ -137,67 +137,107 @@ class CreditoController extends Controller
     public function mostrarCuentas($clientes)
     {
         $cuentas = Credito::where('cliente_id', '=', $clientes)
-            ->join('trabajadors as t', 't.id', '=', 'trabajador_id')
-            ->select('creditos.id as id',
-                'monto',
-                'fecha',
-                't.nombre as trabajador',
-                'estado'
-            )->orderBy('fecha', 'desc')->orderBy('estado', 'desc')->get();
+        ->join('trabajadors as t', 't.id', '=', 'trabajador_id')
+        ->select('creditos.id as id',
+            'monto',
+            'fecha',
+            't.nombre as trabajador',
+            't.id as trabajador_id',
+            'estado'
+        )->orderBy('fecha', 'desc')->orderBy('estado', 'desc')->get();
         return json_encode(array("cuentas" => $cuentas));
     }
 
     public function verCuenta($credito)
     {
-        $cuenta = Credito::where('id','=',$credito)->get();
-        $retraso = Cuotum::where('credito_id', '=', $credito)
-            ->select('fecha_pago as fecha')->orderBy('fecha_pago', 'desc')->get()->first();
-        if(!empty($retraso)){
-            $retraso=$retraso->fecha;
-            $dia=Carbon::createFromFormat('Y-m-d',$retraso)->isFuture();
-            if(!$dia){
-                $diasRetrasados = Carbon::createFromFormat('Y-m-d', $retraso)->diffInDays();
-            }else{
-                $diasRetrasados=0;
+        $cuenta = Credito::where('id', '=', $credito)->get();
+        if ($cuenta->first()->fecha == Carbon::now()->format('Y-m-d')) {
+            $diasRetrasados = 0;
+        } else {
+            $retraso = Cuotum::where('credito_id', '=', $credito)
+                ->select('fecha_pago as fecha')->orderBy('fecha_pago', 'desc')->get()->first();
+            if ($retraso != "") {
+                $retraso = $retraso->fecha;
+                $dia = Carbon::createFromFormat('Y-m-d', $retraso)->isFuture();
+                if (!$dia) {
+                    $diasRetrasados = Carbon::createFromFormat('Y-m-d', $retraso)->diffInDays();
+                    if ((Carbon::now()->isMonday() && $diasRetrasados >= 9) ||
+                        (Carbon::now()->isTuesday() && $diasRetrasados >= 10) ||
+                        (Carbon::now()->isWednesday() && $diasRetrasados >= 11) ||
+                        (Carbon::now()->isThursday() && $diasRetrasados >= 12) ||
+                        (Carbon::now()->isFriday() && $diasRetrasados >= 13) ||
+                        (Carbon::now()->isSaturday() && $diasRetrasados >= 14) ||
+                        (Carbon::now()->isSunday() && $diasRetrasados >= 15)) {
+                        $diasRetrasados = $diasRetrasados - 2;
+                    } elseif ((Carbon::now()->isMonday() && $diasRetrasados >= 1) ||
+                        (Carbon::now()->isTuesday() && $diasRetrasados >= 2) ||
+                        (Carbon::now()->isWednesday() && $diasRetrasados >= 3) ||
+                        (Carbon::now()->isThursday() && $diasRetrasados >= 4) ||
+                        (Carbon::now()->isFriday() && $diasRetrasados >= 5) ||
+                        (Carbon::now()->isSaturday() && $diasRetrasados >= 6) ||
+                        Carbon::now()->isSunday()) {
+                        $diasRetrasados = $diasRetrasados - 1;
+                    }
+                } else {
+                    $diasRetrasados = 0;
+                }
+            } else {
+                $retraso = $cuenta->first()->fecha;
+                $dia = Carbon::createFromFormat('Y-m-d', $retraso)->isFuture();
+                if (!$dia) {
+                    $diasRetrasados = Carbon::createFromFormat('Y-m-d', $retraso)->diffInDays();
+                    if ((Carbon::now()->isMonday() && $diasRetrasados >= 9) ||
+                        (Carbon::now()->isTuesday() && $diasRetrasados >= 10) ||
+                        (Carbon::now()->isWednesday() && $diasRetrasados >= 11) ||
+                        (Carbon::now()->isThursday() && $diasRetrasados >= 12) ||
+                        (Carbon::now()->isFriday() && $diasRetrasados >= 13) ||
+                        (Carbon::now()->isSaturday() && $diasRetrasados >= 14) ||
+                        (Carbon::now()->isSunday() && $diasRetrasados >= 15)) {
+                        $diasRetrasados = $diasRetrasados - 2;
+                    } elseif ((Carbon::now()->isMonday() && $diasRetrasados > 1) ||
+                        (Carbon::now()->isTuesday() && $diasRetrasados >2) ||
+                        (Carbon::now()->isWednesday() && $diasRetrasados > 3) ||
+                        (Carbon::now()->isThursday() && $diasRetrasados > 4) ||
+                        (Carbon::now()->isFriday() && $diasRetrasados > 5) ||
+                        (Carbon::now()->isSaturday() && $diasRetrasados > 6) ||
+                        Carbon::now()->isSunday()) {
+                        $diasRetrasados = $diasRetrasados - 1;
+                    }
+                } else {
+                    $diasRetrasados = 0;
+                }
             }
-
-
-
-        }else{
-
-            $diasRetrasados=0;
         }
-
         $diasFaltantes = $cuenta->first()->dias - count(Cuotum::where('credito_id', '=', $credito)->get());
         $cuotas = Cuotum::where('credito_id', '=', $credito)->get();
-        return json_encode(array("cuenta" => $cuenta, "retrazos" => $diasRetrasados, "faltantes" => $diasFaltantes,"cuotas"=>$cuotas));//
+        return json_encode(array("cuenta" => $cuenta, "retrazos" => $diasRetrasados, "faltantes" => $diasFaltantes, "cuotas" => $cuotas));//
     }
 
     public function nuevoCredito($monto, $interes, $fecha, $dias, $cuota, $cliente_id, $trabajador_id)
     {
-            $balance_id=Balance::where('trabajador_id', '=', $trabajador_id)
-                ->where('estado', '=', 1)
-                ->select('id',  'fecha')->orderBy('id', 'desc')->get()->first();
-        if (!empty($balance_id)){
-            $ingresos = Movimiento::where('balance_id','=',$balance_id->id)
-                ->where('tipo','=',1)
+        $balance_id = Balance::where('trabajador_id', '=', $trabajador_id)
+            ->where('estado', '=', 1)
+            ->select('id', 'fecha')->orderBy('id', 'desc')->get()->first();
+        if (!empty($balance_id)) {
+            $ingresos = Movimiento::where('balance_id', '=', $balance_id->id)
+                ->where('tipo', '=', 1)
                 ->select(DB::raw('sum(monto) as ingresos'))
                 ->get()->first();
-            if(!empty($ingresos)){
-                $egresos= Movimiento::where('balance_id','=',$balance_id->id)
-                    ->where('tipo','=',2)
+            if (!empty($ingresos)) {
+                $egresos = Movimiento::where('balance_id', '=', $balance_id->id)
+                    ->where('tipo', '=', 2)
                     ->select(DB::raw('sum(monto) as egresos'))
                     ->get()->first();
-                if(!empty($egresos)){
-                    $saldo=$ingresos->ingresos-$egresos->egresos;
-                }else{
-                    $saldo=$ingresos->ingresos;
+                if (!empty($egresos)) {
+                    $saldo = $ingresos->ingresos - $egresos->egresos;
+                } else {
+                    $saldo = $ingresos->ingresos;
                 }
-            }else{
+            } else {
                 return json_encode(array("confirmacion" => 0));
             }
 
-        }else{
+        } else {
             return json_encode(array("confirmacion" => 0));
         }
         if ($saldo >= $monto) {
@@ -218,15 +258,15 @@ class CreditoController extends Controller
                     'informe_id' => $informe_id
                 ]
             );
-            Cliente::find($cliente_id)->update(['conPrestamo'=>1]);
-            $cliente=Cliente::find($cliente_id)->nombre;
+            Cliente::find($cliente_id)->update(['conPrestamo' => 1]);
+            $cliente = Cliente::find($cliente_id)->nombre;
             Movimiento::create([
-                'fecha'=>Carbon::now()->format('Y-m-d'),
-                'monto'=>$monto,
-                'detalle'=>'PRESTAMO',
-                'descripcion'=>'Prestamo a '.$cliente,
-                'tipo'=>2,
-                'balance_id'=>$balance_id->id
+                'fecha' => Carbon::now()->format('Y-m-d'),
+                'monto' => $monto,
+                'detalle' => 'PRESTAMO',
+                'descripcion' => 'Prestamo a ' . $cliente,
+                'tipo' => 2,
+                'balance_id' => $balance_id->id
             ]);
             return json_encode(array("confirmacion" => 1));
         } else {

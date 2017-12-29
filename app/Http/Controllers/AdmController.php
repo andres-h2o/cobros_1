@@ -136,9 +136,9 @@ class AdmController extends Controller
     public function actualizarPassword($passwordOld,$passwordNew, $nombre)
     {
 
-        $trabajador=Trabajador::where('nombre','=',$nombre)->get()->first();
-        if($trabajador->password==$passwordOld){
-            Trabajador::find($$trabajador->trabajador_id)->update(['password'=>$passwordNew]);
+        $adm=Adm::where('nombre','=',$nombre)->get()->first();
+        if($adm->password==$passwordOld){
+            Adm::find($adm->id)->update(['password'=>$passwordNew]);
             return json_encode(array("confirmacion"=>1));
         }
         return json_encode(array("confirmacion"=>0));
