@@ -236,7 +236,7 @@ class ClienteController extends Controller
                 'clientes.longitud as longitud',
                 't.nombre as trabajador')
             ->orderBy('t.nombre','asc')->get();
-        return $clientes;
+
         return json_encode(array("clientes"=>$clientes));
     }
 }
