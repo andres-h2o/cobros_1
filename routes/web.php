@@ -32,7 +32,7 @@ Route::resource('acuenta', 'AcuentaController');
 //agregar un nuevo trfabajadpr
 Route::get('agregarTrabajador/{nombre}/{celular}/{password}','TrabajadorController@guardarTrabajador');
 //agregar nuevo cliente
-Route::get('agregarCliente/{nombre}/{celular}/{latitud}/{longitud}','ClienteController@guardarCliente');
+Route::get('agregarCliente/{nombre}/{celular}/{carnet}/{direccion}/{latitud}/{longitud}','ClienteController@guardarCliente');
 //abrir informe general
 Route::get('abrirInforme','InformeController@abrirInforme');
 //cerrar informe general
@@ -68,8 +68,12 @@ Route::get('clientes/ubicarTodos','ClienteController@ubicarTodos');
 Route::get('clientes/mostrar/pendientes/{trabajador}','ClienteController@mostrarPendientes');
 //muestra  os creditos de un cliente
 Route::get('clientes/mostrar/cuentas/{cliente}','CreditoController@mostrarCuentas');
+
+//muestra  os creditos de un cliente realizadas por un trabajador
+Route::get('clientes/mostrar/cuentas/trabajador/{cliente}/{trabajador}','CreditoController@mostrarCuentasTrabajador');
+
 //editar datos del cliente
-Route::get('clientes/actualizar/{cliente_id}/{nombre}/{celular}','ClienteController@actualizar');
+Route::get('clientes/actualizar/{cliente_id}/{nombre}/{celular}/{carnet}/{direccion}','ClienteController@actualizar');
 //ver detalles de un credito en especifico
 Route::get('cuentas/ver/{credito}','CreditoController@verCuenta');
 

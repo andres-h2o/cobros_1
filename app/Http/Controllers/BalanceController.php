@@ -129,7 +129,7 @@ class BalanceController extends Controller
     {
         $balance_id = Balance::where('trabajador_id', '=', $trabajador_id)
             ->where('estado', '=', 1)
-            ->select('id', 'fecha','fecha_cierre','estado')->orderBy('id', 'desc')->get()->first();
+            ->select('id', 'created_at as fecha','updated_at as fecha_cierre','estado')->orderBy('id', 'desc')->get()->first();
         if ($balance_id!="") {
             $ingresos = Movimiento::where('balance_id', '=', $balance_id->id)
                 ->where('tipo', '=', 1)
@@ -291,8 +291,8 @@ class BalanceController extends Controller
             }
             return json_encode(array(
                 "codigo" => $balance_id."",
-                "fecha" => Balance::find($balance_id)->fecha . "",
-                "fecha_cierre" => Balance::find($balance_id)->fecha_cierre . "",
+                "fecha" => Balance::find($balance_id)->created_at . "",
+                "fecha_cierre" => Balance::find($balance_id)->updated_at . "",
                 "estado" => Balance::find($balance_id)->estado . "",
                 "ingresos" => $ingresos."",
                 "egresos" => $egresos."",
@@ -326,7 +326,7 @@ class BalanceController extends Controller
     function verHistorico($trabajador_id)
     {
         $informes = Balance::where('trabajador_id', '=', $trabajador_id)
-            ->select('id','fecha','fecha_cierre','estado')->orderBy('id','desc')->get();
+            ->select('id','created_at as fecha','updated_at as fecha_cierre','estado')->orderBy('id','desc')->get();
         return json_encode(array("informes" => $informes));
     }
 
@@ -338,7 +338,7 @@ class BalanceController extends Controller
             ->join('balances as b','b.id','=','balance_id')
             ->join('trabajadors as t','t.id','=','trabajador_id')
             ->where('tipo', '=', 1)
-            ->select('movimientos.id as id','movimientos.fecha','monto','detalle','descripcion','nombre')
+            ->select('movimientos.id as id','movimientos.created_at as fecha','monto','detalle','descripcion','nombre')
             ->orderBy('movimientos.id','desc')->get();
         return json_encode(array("ingresos" => $ingresos));
     }
@@ -351,7 +351,7 @@ class BalanceController extends Controller
             ->join('balances as b','b.id','=','balance_id')
             ->join('trabajadors as t','t.id','=','trabajador_id')
             ->where('tipo', '=', 2)
-            ->select('movimientos.id as id','movimientos.fecha','monto','detalle','descripcion','nombre')
+            ->select('movimientos.id as id','movimientos.created_at as fecha','monto','detalle','descripcion','nombre')
             ->orderBy('movimientos.id','desc')->get();
 
         return json_encode(array("egresos" => $ingresos));
@@ -365,7 +365,7 @@ class BalanceController extends Controller
             ->join('balances as b','b.id','=','balance_id')
             ->join('trabajadors as t','t.id','=','trabajador_id')
             ->where('detalle', '=', 'GASTO')
-            ->select('movimientos.id as id','movimientos.fecha','monto','detalle','descripcion','nombre')
+            ->select('movimientos.id as id','movimientos.created_at as fecha','monto','detalle','descripcion','nombre')
             ->orderBy('movimientos.id','desc')->get();
 
         return json_encode(array("gastos" => $ingresos));

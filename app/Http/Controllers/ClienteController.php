@@ -132,11 +132,13 @@ class ClienteController extends Controller
         return redirect('cliente')->with('flash_message', 'Cliente deleted!');
     }
 
-    public function guardarCliente($nombre, $celular, $latitud, $longitud)
+    public function guardarCliente($nombre, $celular,$carnet,$direccion, $latitud, $longitud)
     {
         Cliente::create([
             'nombre' => $nombre,
             'celular' => $celular,
+            'carnet' => $carnet,
+            'direccion' => $direccion,
             'longitud' => $longitud,
             'latitud' => $latitud,
             'conPrestamo' => 0
@@ -150,6 +152,8 @@ class ClienteController extends Controller
             ->select('clientes.id as id',
                 'nombre',
                 'celular',
+                'carnet',
+                'direccion',
                 'latitud',
                 'longitud',
                 'conPrestamo'
@@ -159,6 +163,8 @@ class ClienteController extends Controller
             ->select('clientes.id as id',
                 'nombre',
                 'celular',
+                'carnet',
+                'direccion',
                 'latitud',
                 'longitud',
                 'conPrestamo'
@@ -203,6 +209,8 @@ class ClienteController extends Controller
             ->select('clientes.id as id',
                 'nombre',
                 'celular',
+                'carnet',
+                'direccion',
                 'latitud',
                 'longitud',
                 'conPrestamo'
@@ -212,12 +220,15 @@ class ClienteController extends Controller
         return json_encode(array("clientes" => $clientesTrabajador));
     }
 
-    public function actualizar($cliente_id, $nombre, $celular)
+    public function actualizar($cliente_id, $nombre, $celular,$carnet,$direccion)
     {
         $cliente = Cliente::find($cliente_id);
         $cliente->update([
             'nombre'=>$nombre,
-            'celular'=> $celular
+            'celular'=> $celular,
+            'carnet'=> $carnet,
+            'direccion'=> $direccion,
+
         ]);
         return json_encode(array("confirmacion"=>1));
     }

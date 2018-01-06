@@ -304,8 +304,8 @@ class InformeController extends Controller
         $informe = Informe::select('id', 'fecha', 'fecha_cierre', 'estado')->orderBy('id', 'desc')->get()->first();
         if ($informe != "") {
             $informe_id = $informe->id;
-            $informe_fecha = $informe->fecha;
-            $informe_fecha_cierre = $informe->fecha_cierre;
+            $informe_fecha = $informe->created_at;
+            $informe_fecha_cierre = $informe->updated_at;
             $informe_estado = $informe->estado;
         } else {
             return json_encode(array("confirmacion" => 0));
@@ -427,8 +427,8 @@ class InformeController extends Controller
         if ($informe->estado == 1) {
             if ($informe != "") {
                 $informe_id = $informe->id;
-                $informe_fecha = $informe->fecha;
-                $informe_fecha_cierre = $informe->fecha_cierre;
+                $informe_fecha = $informe->created_at;
+                $informe_fecha_cierre = $informe->updated_at;
                 $informe_estado = $informe->estado;
             } else {
                 return json_encode(array("confirmacion" => 0));
@@ -575,7 +575,7 @@ class InformeController extends Controller
             ->join('trabajadors as t', 't.id', '=', 'b.trabajador_id')
             ->where('b.informe_id', '=', $informe_id)
             ->where('tipo', '=', 1)
-            ->select('movimientos.id as id', 'movimientos.fecha', 'monto', 'detalle', 'descripcion', 'nombre')
+            ->select('movimientos.id as id', 'movimientos.created_at as fecha', 'monto', 'detalle', 'descripcion', 'nombre')
             ->orderBy('movimientos.id', 'desc')->get();
         return json_encode(array("ingresos" => $ingresos));
     }
@@ -588,7 +588,7 @@ class InformeController extends Controller
             ->join('trabajadors as t', 't.id', '=', 'b.trabajador_id')
             ->where('b.informe_id', '=', $informe_id)
             ->where('tipo', '=', 2)
-            ->select('movimientos.id as id', 'movimientos.fecha', 'monto', 'detalle', 'descripcion', 'nombre')
+            ->select('movimientos.id as id', 'movimientos.created_at as fecha', 'monto', 'detalle', 'descripcion', 'nombre')
             ->orderBy('movimientos.id', 'desc')->get();
 
         return json_encode(array("egresos" => $egresos));
@@ -602,7 +602,7 @@ class InformeController extends Controller
             ->join('trabajadors as t', 't.id', '=', 'b.trabajador_id')
             ->where('b.informe_id', '=', $informe_id)
             ->where('detalle', '=', 'GASTO')
-            ->select('movimientos.id as id', 'movimientos.fecha', 'monto', 'detalle', 'descripcion', 'nombre')
+            ->select('movimientos.id as id', 'movimientos.created_at as fecha', 'monto', 'detalle', 'descripcion', 'nombre')
             ->orderBy('movimientos.id', 'desc')->get();
 
         return json_encode(array("gastos" => $gastos));

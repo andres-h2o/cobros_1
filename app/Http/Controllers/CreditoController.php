@@ -137,14 +137,29 @@ class CreditoController extends Controller
     public function mostrarCuentas($clientes)
     {
         $cuentas = Credito::where('cliente_id', '=', $clientes)
-        ->join('trabajadors as t', 't.id', '=', 'trabajador_id')
-        ->select('creditos.id as id',
-            'monto',
-            'fecha',
-            't.nombre as trabajador',
-            't.id as trabajador_id',
-            'estado'
-        )->orderBy('fecha', 'desc')->orderBy('estado', 'desc')->get();
+            ->join('trabajadors as t', 't.id', '=', 'trabajador_id')
+            ->select('creditos.id as id',
+                'monto',
+                'creditos.created_at as fecha',
+                't.nombre as trabajador',
+                't.id as trabajador_id',
+                'estado'
+            )->orderBy('fecha', 'desc')->orderBy('estado', 'desc')->get();
+        return json_encode(array("cuentas" => $cuentas));
+    }
+
+    public function mostrarCuentasTrabajador($clientes,$trabajador)
+    {
+        $cuentas = Credito::where('cliente_id', '=', $clientes)
+            ->where('trabajador_id', '=', $trabajador)
+            ->join('trabajadors as t', 't.id', '=', 'trabajador_id')
+            ->select('creditos.id as id',
+                'monto',
+                'creditos.created_at as fecha',
+                't.nombre as trabajador',
+                't.id as trabajador_id',
+                'estado'
+            )->orderBy('fecha', 'desc')->orderBy('estado', 'desc')->get();
         return json_encode(array("cuentas" => $cuentas));
     }
 
@@ -195,7 +210,7 @@ class CreditoController extends Controller
                         (Carbon::now()->isSunday() && $diasRetrasados >= 15)) {
                         $diasRetrasados = $diasRetrasados - 2;
                     } elseif ((Carbon::now()->isMonday() && $diasRetrasados > 1) ||
-                        (Carbon::now()->isTuesday() && $diasRetrasados >2) ||
+                        (Carbon::now()->isTuesday() && $diasRetrasados > 2) ||
                         (Carbon::now()->isWednesday() && $diasRetrasados > 3) ||
                         (Carbon::now()->isThursday() && $diasRetrasados > 4) ||
                         (Carbon::now()->isFriday() && $diasRetrasados > 5) ||
