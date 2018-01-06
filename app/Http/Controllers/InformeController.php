@@ -301,7 +301,7 @@ class InformeController extends Controller
 
     public function verUltimo()
     {
-        $informe = Informe::select('id', 'fecha', 'fecha_cierre', 'estado')->orderBy('id', 'desc')->get()->first();
+        $informe = Informe::select('id', 'created_at', 'updated_at', 'estado')->orderBy('id', 'desc')->get()->first();
         if ($informe != "") {
             $informe_id = $informe->id;
             $informe_fecha = $informe->created_at;

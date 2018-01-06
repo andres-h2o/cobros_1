@@ -235,7 +235,7 @@ class ClienteController extends Controller
 
     public function mostrarTodos()
     {
-        return json_encode(array("clientes"=>Cliente::select('id','nombre','conPrestamo','celular')->orderBy('id','asc')->get()));
+        return json_encode(array("clientes"=>Cliente::select('id','nombre','conPrestamo','celular','carnet', 'direccion')->orderBy('id','asc')->get()));
     }
     public function ubicarTodos()
     {
