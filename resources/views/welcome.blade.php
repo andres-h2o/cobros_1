@@ -83,7 +83,7 @@
                 </div>
 
                 <div class="links">
-                    <a href="https://laravel.com/docs">Trabajadores</a>
+                    <a href="{{ url('/acc') }}">Trabajadores</a>
                     <a href="cliente">Clientes</a>
                     <a href="https://laravel-news.com">Prestamos</a>
                     <a href="https://forge.laravel.com">Informes</a>

@@ -32,7 +32,7 @@ Route::resource('acuenta', 'AcuentaController');
 //agregar un nuevo trfabajadpr
 Route::get('agregarTrabajador/{nombre}/{celular}/{password}','TrabajadorController@guardarTrabajador');
 //agregar nuevo cliente
-Route::get('agregarCliente/{nombre}/{celular}/{carnet}/{direccion}/{latitud}/{longitud}','ClienteController@guardarCliente');
+Route::get('agregarCliente/{nombre}/{celular}/{carnet}/{direccion}/{latitud}/{longitud}/{trabajador}','ClienteController@guardarCliente');
 //abrir informe general
 Route::get('abrirInforme','InformeController@abrirInforme');
 //cerrar informe general
@@ -73,7 +73,7 @@ Route::get('clientes/mostrar/cuentas/{cliente}','CreditoController@mostrarCuenta
 Route::get('clientes/mostrar/cuentas/trabajador/{cliente}/{trabajador}','CreditoController@mostrarCuentasTrabajador');
 
 //editar datos del cliente
-Route::get('clientes/actualizar/{cliente_id}/{nombre}/{celular}/{carnet}/{direccion}','ClienteController@actualizar');
+Route::get('clientes/actualizar/{cliente_id}/{nombre}/{celular}/{carnet}/{direccion}/{latitud}/{longitud}/{trabajador}','ClienteController@actualizar');
 //ver detalles de un credito en especifico
 Route::get('cuentas/ver/{credito}','CreditoController@verCuenta');
 
@@ -111,6 +111,7 @@ Route::get('informes/verEgresos/{informe_id}','InformeController@mostrarEgresos'
 Route::get('informes/verGastos/{informe_id}','InformeController@mostrarGastos');
 //ver historico de informes>retorna todos los informes
 Route::get('informes/verHistorico','InformeController@verHistorico');
+Route::get('acc','ClienteController@actualizarId');
 
 //notificar NO Pago
 Route::get('observacion/nueva/{detalle}/{cliente_id}/{trabajador_id}','ObservacionController@nuevaObservacion');

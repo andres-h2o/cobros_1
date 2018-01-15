@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Credito;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
@@ -132,7 +133,7 @@ class ClienteController extends Controller
         return redirect('cliente')->with('flash_message', 'Cliente deleted!');
     }
 
-    public function guardarCliente($nombre, $celular,$carnet,$direccion, $latitud, $longitud)
+    public function guardarCliente($nombre, $celular,$carnet,$direccion, $latitud, $longitud,$trabajador)
     {
         Cliente::create([
             'nombre' => $nombre,
@@ -141,7 +142,8 @@ class ClienteController extends Controller
             'direccion' => $direccion,
             'longitud' => $longitud,
             'latitud' => $latitud,
-            'conPrestamo' => 0
+            'conPrestamo' => 0,
+            'trabajador_id'=>$trabajador
         ]);
         return json_encode(array("confirmacion" => 1));
     }
@@ -160,6 +162,7 @@ class ClienteController extends Controller
             )->where('c.trabajador_id', '=', $trabajador)
             ->where('c.estado', '=', 1)->orderBy('clientes.id', 'asc')->get();
         $clientesSin = Cliente::where('conPrestamo', '=', 0)
+            ->where('trabajador_id','=',$trabajador)
             ->select('clientes.id as id',
                 'nombre',
                 'celular',
@@ -167,7 +170,8 @@ class ClienteController extends Controller
                 'direccion',
                 'latitud',
                 'longitud',
-                'conPrestamo'
+                'conPrestamo',
+            'trabajador_id'
             )->orderBy('clientes.id', 'asc')->get();
         return json_encode(array("clientesCon" => $clientes, "clientesSin" => $clientesSin));
     }
@@ -220,7 +224,7 @@ class ClienteController extends Controller
         return json_encode(array("clientes" => $clientesTrabajador));
     }
 
-    public function actualizar($cliente_id, $nombre, $celular,$carnet,$direccion)
+    public function actualizar($cliente_id, $nombre, $celular,$carnet,$direccion, $longitud,$latitud,$trabajador)
     {
         $cliente = Cliente::find($cliente_id);
         $cliente->update([
@@ -228,14 +232,16 @@ class ClienteController extends Controller
             'celular'=> $celular,
             'carnet'=> $carnet,
             'direccion'=> $direccion,
-
+            'longitud' => $longitud,
+            'latitud' => $latitud,
+            'trabajador_id'=>$trabajador
         ]);
         return json_encode(array("confirmacion"=>1));
     }
 
     public function mostrarTodos()
     {
-        return json_encode(array("clientes"=>Cliente::select('id','nombre','conPrestamo','celular','carnet', 'direccion')->orderBy('id','asc')->get()));
+        return json_encode(array("clientes"=>Cliente::select('id','nombre','conPrestamo','celular','carnet', 'direccion','trabajador_id')->orderBy('id','asc')->get()));
     }
     public function ubicarTodos()
     {
@@ -249,5 +255,49 @@ class ClienteController extends Controller
             ->orderBy('t.nombre','asc')->get();
 
         return json_encode(array("clientes"=>$clientes));
+    }
+    public function actualizarId(){
+        $tra=2;
+        $clientes=Credito::where('trabajador_id','=',$tra)
+            ->select('cliente_id')->get();
+        foreach ($clientes as $cliente){
+            Cliente::find($cliente->cliente_id)->update(['trabajador_id'=>$tra]);
+        }
+        $tra=3;
+        $clientes=Credito::where('trabajador_id','=',$tra)
+            ->select('cliente_id')->get();
+        foreach ($clientes as $cliente){
+            Cliente::find($cliente->cliente_id)->update(['trabajador_id'=>$tra]);
+        }
+        $tra=4;
+        $clientes=Credito::where('trabajador_id','=',$tra)
+            ->select('cliente_id')->get();
+        foreach ($clientes as $cliente){
+            Cliente::find($cliente->cliente_id)->update(['trabajador_id'=>$tra]);
+        }
+        $tra=5;
+        $clientes=Credito::where('trabajador_id','=',$tra)
+            ->select('cliente_id')->get();
+        foreach ($clientes as $cliente){
+            Cliente::find($cliente->cliente_id)->update(['trabajador_id'=>$tra]);
+        }
+        $tra=6;
+        $clientes=Credito::where('trabajador_id','=',$tra)
+            ->select('cliente_id')->get();
+        foreach ($clientes as $cliente){
+            Cliente::find($cliente->cliente_id)->update(['trabajador_id'=>$tra]);
+        }
+        $tra=7;
+        $clientes=Credito::where('trabajador_id','=',$tra)
+            ->select('cliente_id')->get();
+        foreach ($clientes as $cliente){
+            Cliente::find($cliente->cliente_id)->update(['trabajador_id'=>$tra]);
+        }
+        $tra=8;
+        $clientes=Credito::where('trabajador_id','=',$tra)
+            ->select('cliente_id')->get();
+        foreach ($clientes as $cliente){
+            Cliente::find($cliente->cliente_id)->update(['trabajador_id'=>$tra]);
+        }
     }
 }
