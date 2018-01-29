@@ -246,7 +246,7 @@ class ClienteController extends Controller
     public function ubicarTodos()
     {
         $clientes =Cliente::join('creditos as c','c.cliente_id','=','clientes.id' )
-            ->join('trabajadors as t', 't.id','=','trabajador_id')
+            ->join('trabajadors as t', 't.id','=','c.trabajador_id')
             ->select('clientes.id as id',
                 'clientes.nombre as nombre',
                 'clientes.latitud as latitud',
