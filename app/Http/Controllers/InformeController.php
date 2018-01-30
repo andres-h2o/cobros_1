@@ -245,6 +245,7 @@ class InformeController extends Controller
             } else {
                 $cobrado = 0;
             }
+
             $cargado = Movimiento::where('balance_id', '=', $balance_id)
                 ->where('detalle', '=', 'CARGA')
                 ->select(DB::raw('sum(monto) as monto'))->get()->first();
@@ -291,6 +292,7 @@ class InformeController extends Controller
             'cargado' => $datos->cargado,
             'prestado' => $datos->prestado,
             'cobrado' => $datos->cobrado,
+            'cobradoDia' => "Sin Valor",
             'gastado' => $datos->gastado,
             'porCobrar' => $datos->porCobrar
         ]);
@@ -318,6 +320,7 @@ class InformeController extends Controller
         $tcargado = 0;
         $tprestado = 0;
         $tcobrado = 0;
+        $tcobradoDia = 0;
         $tgastado = 0;
         $tporCobrar = 0;
         foreach ($balances as $item) {
@@ -380,6 +383,15 @@ class InformeController extends Controller
             } else {
                 $cobrado = 0;
             }
+            $cobradoDia = Movimiento::where('balance_id', '=',  $item->id)
+                ->where('detalle', '=', 'COBRO')
+                ->where('fecha','=',Carbon::now()->format('Y-m-d'))
+                ->select(DB::raw('sum(monto) as monto'))->get()->first();
+            if ($cobradoDia->monto != null) {
+                $cobradoDia = $cobradoDia->monto;
+            } else {
+                $cobradoDia = 0;
+            }
             $cargado = Movimiento::where('balance_id', '=', $item->id)
                 ->where('detalle', '=', 'CARGA')
                 ->select(DB::raw('sum(monto) as monto'))->get()->first();
@@ -400,6 +412,7 @@ class InformeController extends Controller
             $tegresos = $tegresos + $egresos;
             $tprestado = $tprestado + $prestado;
             $tcobrado = $tcobrado + $cobrado;
+            $tcobradoDia = $tcobradoDia + $cobradoDia;
             $tgastado = $tgastado + $gastado;
             $tcargado = $tcargado + $cargado;
             $tporCobrar = $tporCobrar + $porCobrar;
@@ -416,6 +429,7 @@ class InformeController extends Controller
             "prestado" => $tprestado . "",
             "gastado" => $tgastado . "",
             "cobrado" => $tcobrado . "",
+            "cobradoDia" => $tcobradoDia . "",
             "porCobrar" => $tporCobrar . ""
         ));
     }
@@ -423,7 +437,7 @@ class InformeController extends Controller
     public function verInforme($informe_id)
     {
 
-        $informe = Informe::where('id','=',$informe_id)->get()->first();
+        $informe = Informe::where('id', '=', $informe_id)->get()->first();
         if ($informe->estado == 1) {
             if ($informe != "") {
                 $informe_id = $informe->id;
@@ -441,6 +455,7 @@ class InformeController extends Controller
             $tcargado = 0;
             $tprestado = 0;
             $tcobrado = 0;
+            $tcobradoDia = 0;
             $tgastado = 0;
             $tporCobrar = 0;
             foreach ($balances as $item) {
@@ -503,6 +518,15 @@ class InformeController extends Controller
                 } else {
                     $cobrado = 0;
                 }
+                $cobradoDia = Movimiento::where('balance_id', '=',  $item->id)
+                    ->where('detalle', '=', 'COBRO')
+                    ->where('fecha','=',Carbon::now()->format('Y-m-d'))
+                    ->select(DB::raw('sum(monto) as monto'))->get()->first();
+                if ($cobradoDia->monto != null) {
+                    $cobradoDia = $cobradoDia->monto;
+                } else {
+                    $cobradoDia = 0;
+                }
                 $cargado = Movimiento::where('balance_id', '=', $item->id)
                     ->where('detalle', '=', 'CARGA')
                     ->select(DB::raw('sum(monto) as monto'))->get()->first();
@@ -523,6 +547,7 @@ class InformeController extends Controller
                 $tegresos = $tegresos + $egresos;
                 $tprestado = $tprestado + $prestado;
                 $tcobrado = $tcobrado + $cobrado;
+                $tcobradoDia = $tcobradoDia + $cobradoDia;
                 $tgastado = $tgastado + $gastado;
                 $tcargado = $tcargado + $cargado;
                 $tporCobrar = $tporCobrar + $porCobrar;
@@ -541,7 +566,7 @@ class InformeController extends Controller
                 "cobrado" => $tcobrado . "",
                 "porCobrar" => $tporCobrar . ""
             ));
-        }else{
+        } else {
             $datos = Informe::find($informe_id);
             return json_encode(array(
                 "codigo" => $datos->id . "",

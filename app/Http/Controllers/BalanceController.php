@@ -189,6 +189,15 @@ class BalanceController extends Controller
         } else {
             $cobrado = 0;
         }
+        $cobradoDia = Movimiento::where('balance_id', '=', $balance_id->id)
+            ->where('detalle', '=', 'COBRO')
+            ->where('fecha','=',Carbon::now()->format('Y-m-d'))
+            ->select(DB::raw('sum(monto) as monto'))->get()->first();
+        if ($cobradoDia->monto != null) {
+            $cobradoDia = $cobradoDia->monto;
+        } else {
+            $cobradoDia = 0;
+        }
         $cargado = Movimiento::where('balance_id', '=', $balance_id->id)
             ->where('detalle', '=', 'CARGA')
             ->select(DB::raw('sum(monto) as monto'))->get()->first();
@@ -216,6 +225,7 @@ class BalanceController extends Controller
             "prestado" => $prestado."",
             "gastado" => $gastado."",
             "cobrado" => $cobrado."",
+            "cobradoDia" => $cobradoDia."",
             "porCobrar" => $porCobrar.""
         ));
     }
@@ -274,6 +284,15 @@ class BalanceController extends Controller
             } else {
                 $cobrado = 0;
             }
+            $cobradoDia = Movimiento::where('balance_id', '=', $balance_id->id)
+                ->where('detalle', '=', 'COBRO')
+                ->where('fecha','=',Carbon::now()->format('Y-m-d'))
+                ->select(DB::raw('sum(monto) as monto'))->get()->first();
+            if ($cobradoDia->monto != null) {
+                $cobradoDia = $cobradoDia->monto;
+            } else {
+                $cobradoDia = 0;
+            }
             $cargado = Movimiento::where('balance_id', '=', $balance_id)
                 ->where('detalle', '=', 'CARGA')
                 ->select(DB::raw('sum(monto) as monto'))->get()->first();
@@ -301,6 +320,7 @@ class BalanceController extends Controller
                 "prestado" => $prestado."",
                 "gastado" => $gastado."",
                 "cobrado" => $cobrado."",
+                "cobradoDia" => $cobradoDia."",
                 "porCobrar" => $porCobrar.""
             ));
         }else{
@@ -316,6 +336,7 @@ class BalanceController extends Controller
                 "cargado"=>$datos->cargado. "",
                 "prestado"=>$datos->prestado. "",
                 "cobrado"=>$datos->cobrado. "",
+                "cobradoDia"=>"Sin Valor",
                 "gastado"=>$datos->gastado. "",
                 "porCobrar"=>$datos->porCobrar. ""));
         }
