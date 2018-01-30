@@ -564,6 +564,7 @@ class InformeController extends Controller
                 "prestado" => $tprestado . "",
                 "gastado" => $tgastado . "",
                 "cobrado" => $tcobrado . "",
+                "cobradoDia" => $tcobradoDia . "",
                 "porCobrar" => $tporCobrar . ""
             ));
         } else {
@@ -580,6 +581,7 @@ class InformeController extends Controller
                 "prestado" => $datos->prestado . "",
                 "gastado" => $datos->gastado . "",
                 "cobrado" => $datos->cobrado . "",
+                "cobradoDia" => "Sin Valores",
                 "porCobrar" => $datos->porCobrar . ""
             ));
         }
