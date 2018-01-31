@@ -284,7 +284,7 @@ class BalanceController extends Controller
             } else {
                 $cobrado = 0;
             }
-            $cobradoDia = Movimiento::where('balance_id', '=', $balance_id->id)
+            $cobradoDia = Movimiento::where('balance_id', '=', $balance_id)
                 ->where('detalle', '=', 'COBRO')
                 ->where('fecha','=',Carbon::now()->format('Y-m-d'))
                 ->select(DB::raw('sum(monto) as monto'))->get()->first();
