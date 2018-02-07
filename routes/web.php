@@ -82,6 +82,8 @@ Route::get('cuentas/nuevoCredito/{monto}/{interes}/{fecha}/{dias}/{cuota}/{clien
 
 //registrar un nuevo abono para un credito
 Route::get('abono/nuevoAbono/{monto}/{credito_id}/{trabajador_id}','AbonoController@nuevoAbono');
+//eliminar un  abono para un credito
+Route::get('abono/eliminarAbono/{idAbono}/{idTrabajador}','AbonoController@eliminarAbono');
 //ver historico de abonos de un credito
 Route::get('abono/ver/{credito_id}','AbonoController@verAbonos');
 
