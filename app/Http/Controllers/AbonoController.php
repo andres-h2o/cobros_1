@@ -136,8 +136,8 @@ class AbonoController extends Controller
             ->select('id', 'fecha')->orderBy('id', 'desc')->get()->first();
         Movimiento::create([
             'fecha' => Carbon::now()->format('Y-m-d'),
-            'monto' => $abono->monto,
-            'detalle' => 'GASTO',
+            'monto' => -$abono->monto,
+            'detalle' => 'COBRO',
             'descripcion' => 'Borrar abono duplicado',
             'tipo' => 2,
             'balance_id' => $balance_id->id
