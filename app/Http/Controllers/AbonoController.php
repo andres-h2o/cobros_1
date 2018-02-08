@@ -139,7 +139,7 @@ class AbonoController extends Controller
             'monto' => -$abono->monto,
             'detalle' => 'COBRO',
             'descripcion' => 'Borrar abono duplicado',
-            'tipo' => 2,
+            'tipo' => 1,
             'balance_id' => $balance_id->id
         ]);
         $idCredito = $abono->credito_id;
