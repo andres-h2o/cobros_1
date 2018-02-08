@@ -142,38 +142,40 @@ class AbonoController extends Controller
             'tipo' => 2,
             'balance_id' => $balance_id->id
         ]);
-        $idCredito = $abono->creditoId;
+        $idCredito = $abono->credito_id;
         $credito = Credito::find($idCredito);
         $monto = $abono->monto;
 
         while (($monto >= $credito->cuota)) {
-            $id = Cuotum::where('creditoId', '=', $idCredito)
+            //return $idCredito;
+            $id = Cuotum::where('credito_id', '=', $idCredito)
                 ->select('id')->orderBy('id', 'desc')
-                ->get()->first()->id;
-            Cuotum::find($id)->delete();
+                ->get();
+            //return $id;
+            Cuotum::destroy($id);
             $monto = $monto - $credito->cuota;
         }
-        if (($monto > 0 && $credito->saldo == 0)) {
-            $id = Cuotum::where('creditoId', '=', $idCredito)
+        if (($monto > 0 && $credito->acuenta == 0)) {
+            $id = Cuotum::where('credito_id', '=', $idCredito)
                 ->select('id')->orderBy('id', 'desc')
                 ->get()->first()->id;
-            Cuotum::find($id)->delete();
+            Cuotum::destroy($id);
             $monto = $credito->cuota - $monto;
         } else {
-            if (($monto + $credito->saldo >= $credito->cuota)) {
-                $id = Cuotum::where('creditoId', '=', $idCredito)
+            if (($monto + $credito->acuenta >= $credito->cuota)) {
+                $id = Cuotum::where('credito_id', '=', $idCredito)
                     ->select('id')->orderBy('id', 'desc')
                     ->get()->first()->id;
-                Cuotum::find($id)->delete();
+                Cuotum::destroy($id);
                 $monto = $credito->cuota - $monto;
             } else {
-                $monto = $credito->saldo - monto;
+                $monto = $credito->acuenta - $monto;
             }
 
         }
-
+Abono::destroy($idAbono);
         $credito->update([
-            'saldo' => $monto
+            'acuenta' => $monto
         ]);
         return json_encode(array("confirmacion" => 1));
     }

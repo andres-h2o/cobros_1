@@ -79,6 +79,8 @@ Route::get('cuentas/ver/{credito}','CreditoController@verCuenta');
 
 //registrar un nuevo credito para un cliente
 Route::get('cuentas/nuevoCredito/{monto}/{interes}/{fecha}/{dias}/{cuota}/{cliente_id}/{trabajador_id}','CreditoController@nuevoCredito');
+//eliminar un  credito para un cliente
+Route::get('cuentas/eliminarCredito/{creditoId}/{trabajadorId}','CreditoController@eliminarCredito');
 
 //registrar un nuevo abono para un credito
 Route::get('abono/nuevoAbono/{monto}/{credito_id}/{trabajador_id}','AbonoController@nuevoAbono');

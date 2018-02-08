@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Abono;
 use App\Balance;
 use App\Cliente;
 use App\Cuotum;
@@ -288,5 +289,29 @@ class CreditoController extends Controller
             return json_encode(array("confirmacion" => 0));
         }
 
+    }
+
+    public function eliminarCredito($creditoId, $trabajadorId)
+    {
+        $credito=Credito::find($creditoId);
+        $abonos=Abono::where('credito_id','=',$creditoId)->get()->first();
+        //return $abonos;
+        if(empty($abonos)){
+            $balance_id = Balance::where('trabajador_id', '=', $trabajadorId)
+                ->where('estado', '=', 1)
+                ->select('id', 'fecha')->orderBy('id', 'desc')->get()->first();
+            Movimiento::create([
+                'fecha' => Carbon::now()->format('Y-m-d'),
+                'monto' => $credito->monto,
+                'detalle' => 'COBRO',
+                'descripcion' => 'Borrado de Credito Duplicado ',
+                'tipo' => 1,
+                'balance_id' => $balance_id->id
+            ]);
+            Credito::find($creditoId)->delete();
+            return json_encode(array("confirmacion" => 1));
+        }
+
+        return json_encode(array("confirmacion" => 0));
     }
 }
