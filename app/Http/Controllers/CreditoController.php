@@ -302,10 +302,10 @@ class CreditoController extends Controller
                 ->select('id', 'fecha')->orderBy('id', 'desc')->get()->first();
             Movimiento::create([
                 'fecha' => Carbon::now()->format('Y-m-d'),
-                'monto' => $credito->monto,
-                'detalle' => 'COBRO',
+                'monto' => -$credito->monto,
+                'detalle' => 'PRESTAMO',
                 'descripcion' => 'Borrado de Credito Duplicado ',
-                'tipo' => 1,
+                'tipo' => 2,
                 'balance_id' => $balance_id->id
             ]);
             Credito::find($creditoId)->delete();
