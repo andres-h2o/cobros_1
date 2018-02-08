@@ -150,7 +150,7 @@ class AbonoController extends Controller
             //return $idCredito;
             $id = Cuotum::where('credito_id', '=', $idCredito)
                 ->select('id')->orderBy('id', 'desc')
-                ->get();
+                ->get()->first()->id;
             //return $id;
             Cuotum::destroy($id);
             $monto = $monto - $credito->cuota;
