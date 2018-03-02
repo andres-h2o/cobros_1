@@ -149,7 +149,7 @@ class CreditoController extends Controller
         return json_encode(array("cuentas" => $cuentas));
     }
 
-    public function mostrarCuentasTrabajador($clientes,$trabajador)
+    public function mostrarCuentasTrabajador($clientes, $trabajador)
     {
         $cuentas = Credito::where('cliente_id', '=', $clientes)
             ->where('trabajador_id', '=', $trabajador)
@@ -257,11 +257,48 @@ class CreditoController extends Controller
             return json_encode(array("confirmacion" => 0));
         }
         $ultimoCredito = Credito::where('cliente_id', '=', $cliente_id)
-            ->select('created_at as fecha')->orderBy('created_at', 'desc')->get()->first()->fecha;
+            ->select('created_at as fecha')->orderBy('created_at', 'desc')->get()->first();
+        if ($ultimoCredito!=""){
 
-        $tiempo =Carbon::createFromFormat('Y-m-d H:i:s',$ultimoCredito)->diffInSeconds();
+            $tiempo = Carbon::createFromFormat('Y-m-d H:i:s', $ultimoCredito->fecha)->diffInSeconds();
 
-        if($tiempo>500){
+            if ($tiempo > 500) {
+                if ($saldo >= $monto) {
+                    $informe_id = Informe::select('id')
+                        ->orderBy('id', 'desc')
+                        ->get()->first()->id;
+                    Credito::create(
+                        [
+                            'monto' => $monto,
+                            'interes' => $interes,
+                            'fecha' => $fecha,
+                            'dias' => $dias,
+                            'cuota' => $cuota,
+                            'acuenta' => 0,
+                            'cliente_id' => $cliente_id,
+                            'trabajador_id' => $trabajador_id,
+                            'estado' => 1,
+                            'informe_id' => $informe_id
+                        ]
+                    );
+                    Cliente::find($cliente_id)->update(['conPrestamo' => 1]);
+                    $cliente = Cliente::find($cliente_id)->nombre;
+                    Movimiento::create([
+                        'fecha' => Carbon::now()->format('Y-m-d'),
+                        'monto' => $monto,
+                        'detalle' => 'PRESTAMO',
+                        'descripcion' => 'Prestamo a ' . $cliente,
+                        'tipo' => 2,
+                        'balance_id' => $balance_id->id
+                    ]);
+                    return json_encode(array("confirmacion" => 1));
+                } else {
+                    return json_encode(array("confirmacion" => 0));
+                }
+            } else {
+                return json_encode(array("confirmacion" => 0));
+            }
+        }else{
             if ($saldo >= $monto) {
                 $informe_id = Informe::select('id')
                     ->orderBy('id', 'desc')
@@ -294,18 +331,17 @@ class CreditoController extends Controller
             } else {
                 return json_encode(array("confirmacion" => 0));
             }
-        }else{
-            return json_encode(array("confirmacion" => 0));
         }
+
 
     }
 
     public function eliminarCredito($creditoId, $trabajadorId)
     {
-        $credito=Credito::find($creditoId);
-        $abonos=Abono::where('credito_id','=',$creditoId)->get()->first();
+        $credito = Credito::find($creditoId);
+        $abonos = Abono::where('credito_id', '=', $creditoId)->get()->first();
         //return $abonos;
-        if(empty($abonos)){
+        if (empty($abonos)) {
             $balance_id = Balance::where('trabajador_id', '=', $trabajadorId)
                 ->where('estado', '=', 1)
                 ->select('id', 'fecha')->orderBy('id', 'desc')->get()->first();

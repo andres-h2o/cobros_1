@@ -152,33 +152,64 @@ class MovimientoController extends Controller
         } else {
             return json_encode(array("confirmacion" => 0));
         }
-        if ($saldo >= $monto) {
-            Movimiento::create([
-                'fecha' => Carbon::now()->format('Y-m-d'),
-                'monto' => $monto,
-                'detalle' => 'GASTO',
-                'descripcion' => $descripcion,
-                'tipo' => 2,
-                'balance_id' => $balance_id->id
-            ]);
-            return json_encode(array("confirmacion" => 1));
+        $balance_id = Balance::where('trabajador_id', '=', $trabajador_id)
+            ->where('estado', '=', 1)
+            ->select('id', 'fecha')->orderBy('id', 'desc')->get()->first();
+
+        $ultimoGasto = Movimiento::where('balance_id', '=', $balance_id->id)
+            ->where('detalle', '=', "GASTO")
+            ->select('created_at as fecha')->orderBy('created_at', 'desc')->get()->first();
+        if ($ultimoGasto != "") {
+            $tiempo = Carbon::createFromFormat('Y-m-d H:i:s', $ultimoGasto->fecha)->diffInSeconds();
+
+            if ($tiempo > 60) {
+                if ($saldo >= $monto) {
+                    Movimiento::create([
+                        'fecha' => Carbon::now()->format('Y-m-d'),
+                        'monto' => $monto,
+                        'detalle' => 'GASTO',
+                        'descripcion' => $descripcion,
+                        'tipo' => 2,
+                        'balance_id' => $balance_id->id
+                    ]);
+                    return json_encode(array("confirmacion" => 1));
+                } else {
+                    return json_encode(array("confirmacion" => 0));
+                }
+            }else{
+                return json_encode(array("confirmacion" => 0));
+            }
+
         } else {
-            return json_encode(array("confirmacion" => 0));
+            if ($saldo >= $monto) {
+                Movimiento::create([
+                    'fecha' => Carbon::now()->format('Y-m-d'),
+                    'monto' => $monto,
+                    'detalle' => 'GASTO',
+                    'descripcion' => $descripcion,
+                    'tipo' => 2,
+                    'balance_id' => $balance_id->id
+                ]);
+                return json_encode(array("confirmacion" => 1));
+            } else {
+                return json_encode(array("confirmacion" => 0));
+            }
         }
+
 
     }
 
-    public function abonar($monto,$trabajador_id)
+    public function abonar($monto, $trabajador_id)
     {
         $balance_id = Balance::where('trabajador_id', '=', $trabajador_id)
             ->where('estado', '=', 1)
             ->select('id', 'fecha')->orderBy('id', 'desc')->get()->first();
-        if($balance_id!=""){
+        if ($balance_id != "") {
             Movimiento::create([
                 'fecha' => Carbon::now()->format('Y-m-d'),
                 'monto' => $monto,
                 'detalle' => 'CARGA',
-                'descripcion' =>'',
+                'descripcion' => '',
                 'tipo' => 1,
                 'balance_id' => $balance_id->id
             ]);
