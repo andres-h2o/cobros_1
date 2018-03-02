@@ -224,7 +224,7 @@ class ClienteController extends Controller
         return json_encode(array("clientes" => $clientesTrabajador));
     }
 
-    public function actualizar($cliente_id, $nombre, $celular,$carnet,$direccion, $longitud,$latitud,$trabajador)
+    public function actualizar($cliente_id, $nombre, $celular,$carnet,$direccion, $latitud,$longitud,$trabajador)
     {
         $cliente = Cliente::find($cliente_id);
         $cliente->update([
