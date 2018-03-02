@@ -246,74 +246,82 @@ Abono::destroy($idAbono);
                 }
             }
         }
+        $ultimoAbono = Abono::where('credito_id', '=', $credito_id)
+            ->select('created_at as fecha')->orderBy('created_at', 'desc')->get()->first()->fecha;
+        //return $ultimoAbono;
+        $tiempo =Carbon::createFromFormat('Y-m-d H:i:s',$ultimoAbono)->diffInSeconds();
 
-
-        $informe_id = Informe::select('id')
-            ->orderBy('id', 'desc')
-            ->get()->first()->id;
-        Abono::create([
-            'monto' => $monto,
-            'fecha' => Carbon::now()->format('Y-m-d'),
-            'credito_id' => $credito_id,
-            'informe_id' => $informe_id
-        ]);
-        //adicionar movimiento al trabajador como un nuevo ingreso del abono que recibe del cliente
-        $balance_id = Balance::where('trabajador_id', '=', $trabajador_id)
-            ->where('estado', '=', 1)
-            ->select('id', 'fecha')->orderBy('id', 'desc')->get()->first();
-        $credito = Credito::where('id', '=', $credito_id)->get()->first();
-        $cliente = Cliente::find($credito->cliente_id)->nombre;
-
-        Movimiento::create([
-            'fecha' => Carbon::now()->format('Y-m-d'),
-            'monto' => $monto,
-            'detalle' => 'COBRO',
-            'descripcion' => 'Cobro a ' . $cliente,
-            'tipo' => 1,
-            'balance_id' => $balance_id->id
-        ]);
-
-        $abono = $credito->acuenta + $monto;
-        if ($diasRetrasados != 0) {
-            $fecha = Carbon::createFromFormat('Y-m-d', $retraso)->format('Y-m-d');
-        } else {
-            $fecha = Carbon::yesterday()->format('Y-m-d');
-        }
-        while ($abono >= $credito->cuota) {
-
-            $fecha = Carbon::createFromFormat('Y-m-d', $fecha . "")->addDay()->format('Y-m-d');
-            if (Carbon::createFromFormat('Y-m-d', $fecha . "")->isSunday()) {
-                $fecha = Carbon::createFromFormat('Y-m-d', $fecha . "")->addDay()->format('Y-m-d');
-            }
-            Cuotum::create([
-                'monto' => $credito->cuota,
-                'fecha_pago' => $fecha,
-                'estado' => 1,
+        if($tiempo>60){
+            $informe_id = Informe::select('id')
+                ->orderBy('id', 'desc')
+                ->get()->first()->id;
+            Abono::create([
+                'monto' => $monto,
+                'fecha' => Carbon::now()->format('Y-m-d'),
                 'credito_id' => $credito_id,
-                'trabajador_id' => $trabajador_id,
                 'informe_id' => $informe_id
             ]);
-            $abono = $abono - $credito->cuota;
-        }
+            //adicionar movimiento al trabajador como un nuevo ingreso del abono que recibe del cliente
+            $balance_id = Balance::where('trabajador_id', '=', $trabajador_id)
+                ->where('estado', '=', 1)
+                ->select('id', 'fecha')->orderBy('id', 'desc')->get()->first();
+            $credito = Credito::where('id', '=', $credito_id)->get()->first();
+            $cliente = Cliente::find($credito->cliente_id)->nombre;
 
-        $credito = Credito::find($credito_id);
-        $credito->update([
-            'acuenta' => $abono
-        ]);
-        $cuenta = Credito::where('id', '=', $credito_id)->get();
-        $diasFaltantes = $cuenta->first()->dias - count(Cuotum::where('credito_id', '=', $credito_id)->get());
+            Movimiento::create([
+                'fecha' => Carbon::now()->format('Y-m-d'),
+                'monto' => $monto,
+                'detalle' => 'COBRO',
+                'descripcion' => 'Cobro a ' . $cliente,
+                'tipo' => 1,
+                'balance_id' => $balance_id->id
+            ]);
 
-        if ($diasFaltantes <= 0) {
-            Credito::find($credito_id)->update([
-                'estado' => 0
+            $abono = $credito->acuenta + $monto;
+            if ($diasRetrasados != 0) {
+                $fecha = Carbon::createFromFormat('Y-m-d', $retraso)->format('Y-m-d');
+            } else {
+                $fecha = Carbon::yesterday()->format('Y-m-d');
+            }
+            while ($abono >= $credito->cuota) {
+
+                $fecha = Carbon::createFromFormat('Y-m-d', $fecha . "")->addDay()->format('Y-m-d');
+                if (Carbon::createFromFormat('Y-m-d', $fecha . "")->isSunday()) {
+                    $fecha = Carbon::createFromFormat('Y-m-d', $fecha . "")->addDay()->format('Y-m-d');
+                }
+                Cuotum::create([
+                    'monto' => $credito->cuota,
+                    'fecha_pago' => $fecha,
+                    'estado' => 1,
+                    'credito_id' => $credito_id,
+                    'trabajador_id' => $trabajador_id,
+                    'informe_id' => $informe_id
+                ]);
+                $abono = $abono - $credito->cuota;
+            }
+
+            $credito = Credito::find($credito_id);
+            $credito->update([
+                'acuenta' => $abono
             ]);
-            Cliente::find($credito->cliente_id)->update([
-                "conPrestamo" => 0
-            ]);
-            return json_encode(array("confirmacion" => 2));
-        } else {
-            return json_encode(array("confirmacion" => 1));
-        }
+            $cuenta = Credito::where('id', '=', $credito_id)->get();
+            $diasFaltantes = $cuenta->first()->dias - count(Cuotum::where('credito_id', '=', $credito_id)->get());
+
+            if ($diasFaltantes <= 0) {
+                Credito::find($credito_id)->update([
+                    'estado' => 0
+                ]);
+                Cliente::find($credito->cliente_id)->update([
+                    "conPrestamo" => 0
+                ]);
+                return json_encode(array("confirmacion" => 2));
+            } else {
+                return json_encode(array("confirmacion" => 1));
+            }
+        }else{
+          return json_encode(array("confirmacion" => 0));
+      }
+
 
     }
 

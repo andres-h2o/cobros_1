@@ -256,36 +256,45 @@ class CreditoController extends Controller
         } else {
             return json_encode(array("confirmacion" => 0));
         }
-        if ($saldo >= $monto) {
-            $informe_id = Informe::select('id')
-                ->orderBy('id', 'desc')
-                ->get()->first()->id;
-            Credito::create(
-                [
+        $ultimoCredito = Credito::where('cliente_id', '=', $cliente_id)
+            ->select('created_at as fecha')->orderBy('created_at', 'desc')->get()->first()->fecha;
+
+        $tiempo =Carbon::createFromFormat('Y-m-d H:i:s',$ultimoCredito)->diffInSeconds();
+
+        if($tiempo>500){
+            if ($saldo >= $monto) {
+                $informe_id = Informe::select('id')
+                    ->orderBy('id', 'desc')
+                    ->get()->first()->id;
+                Credito::create(
+                    [
+                        'monto' => $monto,
+                        'interes' => $interes,
+                        'fecha' => $fecha,
+                        'dias' => $dias,
+                        'cuota' => $cuota,
+                        'acuenta' => 0,
+                        'cliente_id' => $cliente_id,
+                        'trabajador_id' => $trabajador_id,
+                        'estado' => 1,
+                        'informe_id' => $informe_id
+                    ]
+                );
+                Cliente::find($cliente_id)->update(['conPrestamo' => 1]);
+                $cliente = Cliente::find($cliente_id)->nombre;
+                Movimiento::create([
+                    'fecha' => Carbon::now()->format('Y-m-d'),
                     'monto' => $monto,
-                    'interes' => $interes,
-                    'fecha' => $fecha,
-                    'dias' => $dias,
-                    'cuota' => $cuota,
-                    'acuenta' => 0,
-                    'cliente_id' => $cliente_id,
-                    'trabajador_id' => $trabajador_id,
-                    'estado' => 1,
-                    'informe_id' => $informe_id
-                ]
-            );
-            Cliente::find($cliente_id)->update(['conPrestamo' => 1]);
-            $cliente = Cliente::find($cliente_id)->nombre;
-            Movimiento::create([
-                'fecha' => Carbon::now()->format('Y-m-d'),
-                'monto' => $monto,
-                'detalle' => 'PRESTAMO',
-                'descripcion' => 'Prestamo a ' . $cliente,
-                'tipo' => 2,
-                'balance_id' => $balance_id->id
-            ]);
-            return json_encode(array("confirmacion" => 1));
-        } else {
+                    'detalle' => 'PRESTAMO',
+                    'descripcion' => 'Prestamo a ' . $cliente,
+                    'tipo' => 2,
+                    'balance_id' => $balance_id->id
+                ]);
+                return json_encode(array("confirmacion" => 1));
+            } else {
+                return json_encode(array("confirmacion" => 0));
+            }
+        }else{
             return json_encode(array("confirmacion" => 0));
         }
 
