@@ -320,7 +320,7 @@ Abono::destroy($idAbono);
     public function verAbonos($credito_id)
     {
         $abonos = Abono::where('credito_id', '=', $credito_id)
-            ->select('id', 'fecha', 'monto')->orderBy('id', 'desc')->get();
+            ->select('id', 'created_at', 'monto')->orderBy('id', 'desc')->get();
         return json_encode(array("abonos" => $abonos));
     }
 }
